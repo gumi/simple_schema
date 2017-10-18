@@ -104,10 +104,9 @@ defmodule SimpleSchema do
 
   def from_json(schema, json) do
     json_schema = SimpleSchema.Schema.to_json_schema(schema)
-    resolved_schema = ExJsonSchema.Schema.resolve(json_schema)
-    case ExJsonSchema.Validator.validate(resolved_schema, json) do
-      {:error, errors} ->
-        {:error, errors}
+    case SimpleSchema.Validator.validate(schema, json_schema, json) do
+      {:error, reason} ->
+        {:error, reason}
       :ok ->
         SimpleSchema.Schema.convert(schema, json)
     end
