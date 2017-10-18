@@ -112,4 +112,13 @@ defmodule SimpleSchema do
         SimpleSchema.Schema.convert(schema, json)
     end
   end
+
+  def from_json!(schema, json) do
+    case from_json(schema, json) do
+      {:ok, value} ->
+        value
+      {:error, reason} ->
+        raise "failed from_json/2: #{inspect reason}"
+    end
+  end
 end
