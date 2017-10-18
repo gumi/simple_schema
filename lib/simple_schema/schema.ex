@@ -336,7 +336,6 @@ defmodule SimpleSchema.Schema do
     {:ok, value}
   end
   defp do_convert(schema, value, opts) when is_atom(schema) do
-    Code.ensure_loaded(schema)
     if not simple_schema_implemented?(schema) do
       raise "#{schema} is not implemented SimpleSchema behaviour."
     end

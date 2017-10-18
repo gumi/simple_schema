@@ -39,7 +39,7 @@ defmodule SimpleSchemaTest do
     end
   end
 
-  test "test" do
+  test "JSON can be converted to MyStruct by from_json/2" do
     invalid_json = %{"username" => "abc", "address" => "", "internal" => %{"value" => nil}}
     valid_json = %{"username" => "abcd", "address" => "", "internal" => %{"value" => 10}, "datetime" => "2017-10-13T17:30:28+09:00"}
     {:ok, dt, _} = DateTime.from_iso8601("2017-10-13T17:30:28+09:00")
@@ -62,7 +62,7 @@ defmodule SimpleSchemaTest do
     ]
   end
 
-  test "test2" do
+  test "JSON can be converted to MyStruct2 by from_json/2 with default value" do
     invalid_json = %{"username" => "abc", "address" => "", "internal" => %{"value" => nil}}
     valid_json = %{"username" => "abcd", "address" => "", "internal" => %{"value" => 10}, "datetime" => "2017-10-13T17:30:28+09:00"}
     {:ok, dt, _} = DateTime.from_iso8601("2017-10-13T17:30:28+09:00")
