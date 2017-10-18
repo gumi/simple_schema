@@ -1,5 +1,6 @@
 defmodule SimpleSchemaTest do
   use ExUnit.Case
+  doctest SimpleSchema
 
   defmodule MyInternal do
     defstruct [:value]
@@ -47,11 +48,12 @@ defmodule SimpleSchemaTest do
     assert {:ok, expected} == SimpleSchema.from_json(MyStruct, valid_json)
   end
 
-  import SimpleSchema, only: [defschema: 1]
   defmodule MyInternal2 do
+    import SimpleSchema, only: [defschema: 1]
     defschema [value: {:integer, nullable: true}]
   end
   defmodule MyStruct2 do
+    import SimpleSchema, only: [defschema: 1]
     defschema [
       username: {:string, min_length: 4},
       address: {:string, default: ""},

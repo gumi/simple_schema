@@ -1,126 +1,77 @@
 defmodule SimpleSchema.Schema do
   @moduledoc """
-  オリジナルのフォーマットで作られたスキーマを JSON Schema に変換するためのモジュール。
+  A module to convert a simple schema to JSON Schema
 
-  スキーマに指定可能な型は `:boolean`, `:integer`, `:number`, `:null`, `:string`, `%{...}`, `[...]`, `:any` のいずれかである。
-  `:any` 以外は、それぞれ JSON の型に対応している。
-  `:any` を指定した場合、任意の JSON 型を指定できるようになる。
+  Basic:
 
-      iex> schema = %{name: :string,
-      ...>            value: {:integer, optional: true},
-      ...>            array: [:string],
-      ...>            map: {%{x: :integer, y: :integer}, optional: true},
-      ...>            param: {:any, optional: true}}
-      iex> SimpleSchema.Schema.to_json_schema(schema)
-      %{
+  ```
+  iex> schema = %{name: :string,
+  ...>            value: {:integer, optional: true},
+  ...>            array: [:string],
+  ...>            map: {%{x: :integer, y: :integer}, optional: true},
+  ...>            param: {:any, optional: true}}
+  iex> SimpleSchema.Schema.to_json_schema(schema)
+  %{
+    "type" => "object",
+    "required" => ["array", "name"],
+    "additionalProperties" => false,
+    "properties" => %{
+      "name" => %{"type" => "string"},
+      "value" => %{"type" => "integer"},
+      "array" => %{
+        "type" => "array",
+        "items" => %{"type" => "string"},
+      },
+      "map" => %{
         "type" => "object",
-        "required" => ["array", "name"],
+        "required" => ["x", "y"],
         "additionalProperties" => false,
         "properties" => %{
-          "name" => %{"type" => "string"},
-          "value" => %{"type" => "integer"},
-          "array" => %{
-            "type" => "array",
-            "items" => %{"type" => "string"},
-          },
-          "map" => %{
-            "type" => "object",
-            "required" => ["x", "y"],
-            "additionalProperties" => false,
-            "properties" => %{
-              "x" => %{"type" => "integer"},
-              "y" => %{"type" => "integer"},
-            },
-          },
-          "param" => %{
-            "type" => ["array", "boolean", "integer", "null", "number", "object", "string"],
-          },
+          "x" => %{"type" => "integer"},
+          "y" => %{"type" => "integer"},
         },
-      }
+      },
+      "param" => %{
+        "type" => ["array", "boolean", "integer", "null", "number", "object", "string"],
+      },
+    },
+  }
+  ```
 
-  更に、型には `:maximum` や `:min_length` などの制限を追加できる。
+  With restrictions:
 
-      iex> schema = %{name: {:string, min_length: 8},
-      ...>            value: {:integer, optional: true, nullable: true, maximum: 10},
-      ...>            array: {[{:string, enum: ["aaa", "bbb"]}], min_items: 1}}
-      iex> SimpleSchema.Schema.to_json_schema(schema)
-      %{
-        "type" => "object",
-        "required" => ["array", "name"],
-        "additionalProperties" => false,
-        "properties" => %{
-          "name" => %{
-            "type" => "string",
-            "minLength" => 8,
-          },
-          "value" => %{
-            "type" => ["integer", "null"],
-            "maximum" => 10,
-          },
-          "array" => %{
-            "type" => "array",
-            "minItems" => 1,
-            "items" => %{
-              "type" => "string",
-              "enum" => [
-                "aaa",
-                "bbb",
-              ],
-            }
-          },
-        },
-      }
-
-  詳細は以下の通り。
-
-  - `{:nullable, boolean}`: その型に追加の値として `nil` を設定可能かどうか。`:null` を除く全ての型に指定可能
-  - `{:minimum, non_neg_integer}`: 最小値。`:integer`, `:number` に指定可能
-  - `{:maximum, non_neg_integer}`: 最大値。`:integer`, `:number` に指定可能
-  - `{:max_items, non_neg_integer}`: 最小の要素数。`:array` に指定可能
-  - `{:min_items, non_neg_integer}`: 最大の要素数。`:array` に指定可能
-  - `{:min_length, non_neg_integer}`: 最小の長さ。`:string` に指定可能
-  - `{:max_length, non_neg_integer}`: 最大の長さ。`:string` に指定可能
-  - `{:enum, [...]}`: 要素に指定可能な値の一覧。`:integer`, `:string` に指定可能。
-  - `{:format, :datetime | :email}`: 事前に定義されたフォーマット。`:string` に指定可能。
-  - `{:optional, boolean}`: `%{...}`の子要素として必須の要素かどうか。`true` の場合は必須ではなくなる。`%{...}`の子要素の型にのみ指定可能
-
-  型ごとに指定可能な制限は以下の通り。
-
-  - `:null`:
-    - `:optional`
-  - `:boolean`
-    - `:optional`
-    - `:nullable`
-  - `:integer`
-    - `:optional`
-    - `:nullable`
-    - `:minimum`
-    - `:maximum`
-    - `:enum`
-  - `:number`
-    - `:optional`
-    - `:nullable`
-    - `:minimum`
-    - `:maximum`
-  - `:string`
-    - `:optional`
-    - `:nullable`
-    - `:min_length`
-    - `:max_length`
-    - `:enum`
-    - `:format`
-  - `%{...}`
-    - `:optional`
-    - `:nullable`
-  - `[...]`
-    - `:optional`
-    - `:nullable`
-    - `:min_items`
-    - `:max_items`
-  - `:any`:
-    - `:optional`
-
-  ただし `:optional` は `%{...}` の子要素として存在している場合のみ指定可能。
+  ```
+  iex> schema = %{name: {:string, min_length: 8},
+  ...>            value: {:integer, optional: true, nullable: true, maximum: 10},
+  ...>            array: {[{:string, enum: ["aaa", "bbb"]}], min_items: 1}}
+  iex> SimpleSchema.Schema.to_json_schema(schema)
+  %{
+    "type" => "object",
+    "required" => ["array", "name"],
+    "additionalProperties" => false,
+    "properties" => %{
+      "name" => %{
+        "type" => "string",
+        "minLength" => 8,
+      },
+      "value" => %{
+        "type" => ["integer", "null"],
+        "maximum" => 10,
+      },
+      "array" => %{
+        "type" => "array",
+        "minItems" => 1,
+        "items" => %{
+          "type" => "string",
+          "enum" => [
+            "aaa",
+            "bbb",
+          ],
+        }
+      },
+    },
+  }
+  ```
   """
 
   @type boolean_opt :: {:nullable, boolean} | {:optional, boolean}
@@ -146,12 +97,12 @@ defmodule SimpleSchema.Schema do
 
   @type map_opt :: {:nullable, boolean} | {:optional, boolean}
   @type map_opts :: [map_opt]
-  @type map_prim_type :: %{required(atom) => type}
+  @type map_prim_type :: %{required(atom) => simple_schema}
   @type map_type :: map_prim_type | {map_prim_type, map_opts}
 
   @type array_opt :: {:nullable, boolean} | {:max_items, non_neg_integer()} | {:min_items, non_neg_integer()} | {:optional, boolean}
   @type array_opts :: [array_opt]
-  @type array_type :: nonempty_list(type)
+  @type array_type :: nonempty_list(simple_schema)
 
   @type any_opt :: {:optional, boolean}
   @type any_opts :: [any_opt]
@@ -160,7 +111,7 @@ defmodule SimpleSchema.Schema do
   @type module_opts :: Keyword.t
   @type module_type :: module | {module, module_opts}
 
-  @type type :: boolean_type | integer_type | number_type | null_type | string_type | map_type | array_type | any_type | module_type
+  @type simple_schema :: boolean_type | integer_type | number_type | null_type | string_type | map_type | array_type | any_type | module_type
 
   @primitive_types [:boolean, :integer, :number, :null, :string, :any]
 
@@ -186,11 +137,11 @@ defmodule SimpleSchema.Schema do
   end
   defp pop_optional(type), do: {false, type}
 
-  def is_simple_schema(schema) when is_atom(schema) do
+  def simple_schema_implemented?(schema) when is_atom(schema) do
     Code.ensure_loaded(schema)
     function_exported?(schema, :schema, 1) and function_exported?(schema, :convert, 2)
   end
-  def is_simple_schema(_) do
+  def simple_schema_implemented?(_) do
     false
   end
 
@@ -314,7 +265,7 @@ defmodule SimpleSchema.Schema do
   end
 
   def to_json_schema({schema, opts}) when is_atom(schema) do
-    if not is_simple_schema(schema) do
+    if not simple_schema_implemented?(schema) do
       raise "#{schema} is not exported a function schema/1"
     end
     {schema2, opts2} =
@@ -330,16 +281,16 @@ defmodule SimpleSchema.Schema do
   defp split_opts(schema), do: {schema, []}
 
   @doc """
-  JSON Object のキーを atom に変換する。
+  Convert validated JSON to a simple schema value.
 
-  もしバリデーションが通っている場合、キーは :any 以下を除けば全て既知の atom になるはずなので、
-  `String.to_existing_atom/1` で変換可能なはずである。
+  If validation is passed, The JSON key should be all known atom except `:any` type.
+  So the key can be converted by `String.to_existing_atom/1`.
 
       iex> schema = %{foo: %{bar: :integer}}
       iex> SimpleSchema.Schema.convert(schema, %{"foo" => %{"bar" => 10}})
       {:ok, %{foo: %{bar: 10}}}
 
-  ただし :any 以下は任意のキーが入るため、:any 以下のキーに関しては変換しない。
+  However, `:any` can contains an arbitrary key, so do not convert a value of `:any`.
 
       iex> schema = %{foo: :any}
       iex> SimpleSchema.Schema.convert(schema, %{"foo" => %{"bar" => 10}})
@@ -386,7 +337,7 @@ defmodule SimpleSchema.Schema do
   end
   defp do_convert(schema, value, opts) when is_atom(schema) do
     Code.ensure_loaded(schema)
-    if not is_simple_schema(schema) do
+    if not simple_schema_implemented?(schema) do
       raise "#{schema} is not implemented SimpleSchema behaviour."
     end
 

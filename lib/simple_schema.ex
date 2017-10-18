@@ -1,6 +1,10 @@
 defmodule SimpleSchema do
-  @callback schema(opts :: Keyword.t) :: SimpleSchema.Schema.type
-  @callback convert(SimpleSchema.Schema.type, any) :: {:ok, any} | {:error, any}
+  @moduledoc """
+  #{File.read!("README.md")}
+  """
+
+  @callback schema(opts :: Keyword.t) :: SimpleSchema.Schema.simple_schema
+  @callback convert(schema :: SimpleSchema.Schema.simple_schema, value :: any) :: {:ok, any} | {:error, any}
 
   defp pop_default({value, opts}) do
     if Keyword.has_key?(opts, :default) do
@@ -15,6 +19,7 @@ defmodule SimpleSchema do
   end
 
   @doc ~S"""
+  Generate a struct and implement SimpleSchema behaviour by the specified schema.
 
   ```
   defmodule MySchema do
@@ -40,8 +45,8 @@ defmodule SimpleSchema do
     }
 
     @impl SimpleSchema
-    def schema([]) do
-      @simple_schema
+    def schema(opts) do
+      {@simple_schema, opts}
     end
 
     @impl SimpleSchema
@@ -77,7 +82,6 @@ defmodule SimpleSchema do
           :error -> {key, value}
         end
       end)
-
     quote do
       @enforce_keys unquote(enforce_keys)
       defstruct unquote(structs)
@@ -87,8 +91,8 @@ defmodule SimpleSchema do
       @simple_schema Enum.into(unquote(simple_schema), %{})
 
       @impl SimpleSchema
-      def schema([]) do
-        @simple_schema
+      def schema(opts) do
+        {@simple_schema, opts}
       end
 
       @impl SimpleSchema
