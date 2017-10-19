@@ -7,21 +7,13 @@ SimpleSchema is a schema for validating JSON and storing it in a specific type.
 Basic usage:
 
 ```elixir
-iex> person_schema = %{
-...>   name: :string,
-...>   age: :integer,
-...> }
-iex> json = %{
-...>   "name" => "John Smith",
-...>   "age" => 42,
-...> }
+iex> person_schema = %{name: :string, age: :integer}
+iex>
+iex> json = %{"name" => "John Smith", "age" => 42}
 iex> SimpleSchema.from_json(person_schema, json)
 {:ok, %{name: "John Smith", age: 42}}
 iex>
-iex> invalid_json = %{
-...>   "name" => "John Smith",
-...>   "age" => "invalid",
-...> }
+iex> invalid_json = %{"name" => "John Smith", "age" => "invalid"}
 iex> SimpleSchema.from_json(person_schema, invalid_json)
 {:error, [{"Type mismatch. Expected Integer but got String.", "#/age"}]}
 ```
@@ -41,18 +33,24 @@ defmodule Person do
   end
 
   @impl SimpleSchema
-  def convert(schema, json) do
-    SimpleSchema.Schema.convert(schema, json)
+  def from_json(schema, json) do
+    SimpleSchema.Schema.from_json(schema, json)
+  end
+
+  @impl SimpleSchema
+  def to_json(schema, json) do
+    SimpleSchema.Schema.to_json(schema, json)
   end
 end
+```
 
-iex> json = %{
-...>   "name" => "John Smith",
-...>   "age" => 42,
-...> }
+```elixir
+iex> json = %{"name" => "John Smith", "age" => 42}
 iex> SimpleSchema.from_json(Person, json)
 {:ok, %{name: "John Smith", age: 42}}
+```
 
+```elixir
 # Nesting
 defmodule Group do
   @behaviour SimpleSchema
@@ -66,26 +64,25 @@ defmodule Group do
   end
 
   @impl SimpleSchema
-  def convert(schema, json) do
-    SimpleSchema.Schema.convert(schema, json)
+  def from_json(schema, json) do
+    SimpleSchema.Schema.from_json(schema, json)
+  end
+
+  @impl SimpleSchema
+  def to_json(schema, json) do
+    SimpleSchema.Schema.to_json(schema, json)
   end
 end
+```
 
-iex> json = %{
-...>   "name" => "My Group",
-...>   "persons" => [
-...>     %{"name" => "John Smith", "age" => 42},
-...>     %{"name" => "Hans Schmidt", "age" => 18},
-...>   ],
-...> }
+```elixir
+iex> json = %{"name" => "My Group",
+...>          "persons" => [%{"name" => "John Smith", "age" => 42},
+...>                        %{"name" => "Hans Schmidt", "age" => 18}]}
 iex> SimpleSchema.from_json(Group, json)
-{:ok, %{
-  name: "My Group",
-  persons: [
-    %{name: "John Smith", age: 42},
-    %{name: "Hans Schmidt", age: 18},
-  ]
-}}
+{:ok, %{name: "My Group",
+        persons: [%{name: "John Smith", age: 42},
+                  %{name: "Hans Schmidt", age: 18}]}}
 ```
 
 With struct:
@@ -98,14 +95,15 @@ defmodule StructPerson do
     age: :integer,
   ]
 end
+```
 
-iex> json = %{
-...>   "name" => "John Smith",
-...>   "age" => 42,
-...> }
+```elixir
+iex> json = %{"name" => "John Smith", "age" => 42}
 iex> SimpleSchema.from_json(StructPerson, json)
 {:ok, %StructPerson{name: "John Smith", age: 42}}
+```
 
+```elixir
 # Nesting
 defmodule StructGroup do
   import SimpleSchema, only: [defschema: 1]
@@ -114,22 +112,16 @@ defmodule StructGroup do
     persons: [StructPerson],
   ]
 end
+```
 
-iex> json = %{
-...>   "name" => "My Group",
-...>   "persons" => [
-...>     %{"name" => "John Smith", "age" => 42},
-...>     %{"name" => "Hans Schmidt", "age" => 18},
-...>   ],
-...> }
+```elixir
+iex> json = %{"name" => "My Group",
+...>          "persons" => [%{"name" => "John Smith", "age" => 42},
+...>                        %{"name" => "Hans Schmidt", "age" => 18}]}
 iex> SimpleSchema.from_json(StructGroup, json)
-{:ok, %StructGroup{
-  name: "My Group",
-  persons: [
-    %StructPerson{name: "John Smith", age: 42},
-    %StructPerson{name: "Hans Schmidt", age: 18},
-  ]
-}}
+{:ok, %StructGroup{name: "My Group",
+                   persons: [%StructPerson{name: "John Smith", age: 42},
+                             %StructPerson{name: "Hans Schmidt", age: 18}]}}
 ```
 
 With restrictions:
@@ -142,14 +134,15 @@ defmodule StrictPerson do
     age: {:integer, minimum: 20, maximum: 65},
   ]
 end
+```
 
-iex> json = %{
-...>   "name" => "John Smith",
-...>   "age" => 42,
-...> }
+```elixir
+iex> json = %{"name" => "John Smith", "age" => 42}
 iex> SimpleSchema.from_json(StrictPerson, json)
 {:ok, %StrictPerson{name: "John Smith", age: 42}}
+```
 
+```elixir
 # Nesting
 defmodule StrictGroup do
   import SimpleSchema, only: [defschema: 1]
@@ -158,14 +151,12 @@ defmodule StrictGroup do
     persons: {[StrictPerson], min_items: 2},
   ]
 end
+```
 
-iex> json = %{
-...>   "name" => "My Group",
-...>   "persons" => [
-...>     %{"name" => "John Smith", "age" => 42},
-...>     %{"name" => "Hans Schmidt", "age" => 18},
-...>   ],
-...> }
+```elixir
+iex> json = %{"name" => "My Group",
+...>          "persons" => [%{"name" => "John Smith", "age" => 42},
+...>                        %{"name" => "Hans Schmidt", "age" => 18}]}
 iex> SimpleSchema.from_json(StrictGroup, json)
 {:error, [{"Expected the value to be >= 20", "#/persons/1/age"}]}
 ```

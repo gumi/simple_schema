@@ -139,7 +139,7 @@ defmodule SimpleSchema.Schema do
 
   def simple_schema_implemented?(schema) when is_atom(schema) do
     Code.ensure_loaded(schema)
-    function_exported?(schema, :schema, 1) and function_exported?(schema, :convert, 2)
+    function_exported?(schema, :schema, 1) and function_exported?(schema, :from_json, 2)
   end
   def simple_schema_implemented?(_) do
     false
@@ -280,6 +280,26 @@ defmodule SimpleSchema.Schema do
   defp split_opts({schema, opts}), do: {schema, opts}
   defp split_opts(schema), do: {schema, []}
 
+  defp reduce_results(results, opts \\ []) do
+    result =
+      results
+      |> Enum.reduce({:ok, []}, fn
+        {:ok, value}, {:ok, values} -> {:ok, [value | values]}
+        {:error, error}, {:ok, _} -> {:error, [error]}
+        {:ok, _}, {:error, errors} -> {:error, errors}
+        {:error, error}, {:error, errors} -> {:error, [error | errors]}
+      end)
+    reverse = Keyword.get(opts, :reverse, false)
+    if reverse do
+      case result do
+        {:ok, values} -> {:ok, Enum.reverse(values)}
+        {:error, errors} -> {:error, Enum.reverse(errors)}
+      end
+    else
+      result
+    end
+  end
+
   @doc """
   Convert validated JSON to a simple schema value.
 
@@ -287,62 +307,98 @@ defmodule SimpleSchema.Schema do
   So the key can be converted by `String.to_existing_atom/1`.
 
       iex> schema = %{foo: %{bar: :integer}}
-      iex> SimpleSchema.Schema.convert(schema, %{"foo" => %{"bar" => 10}})
+      iex> SimpleSchema.Schema.from_json(schema, %{"foo" => %{"bar" => 10}})
       {:ok, %{foo: %{bar: 10}}}
 
   However, `:any` can contains an arbitrary key, so do not convert a value of `:any`.
 
       iex> schema = %{foo: :any}
-      iex> SimpleSchema.Schema.convert(schema, %{"foo" => %{"bar" => 10}})
+      iex> SimpleSchema.Schema.from_json(schema, %{"foo" => %{"bar" => 10}})
       {:ok, %{foo: %{"bar" => 10}}}
   """
-  def convert(schema, value) do
+  def from_json(schema, value) do
     {schema, opts} = split_opts(schema)
-    do_convert(schema, value, opts)
+    do_from_json(schema, value, opts)
   end
-  defp do_convert(%{} = schema, map, _opts) do
+  defp do_from_json(%{} = schema, map, _opts) do
     result =
-      Enum.reduce(map, {:ok, []}, fn {key, value}, acc ->
+      map
+      |> Enum.map(fn {key, value} ->
         atom_key = String.to_existing_atom(key)
         schema = Map.fetch!(schema, atom_key)
-        case {acc, convert(schema, value)} do
-          {{:ok, results}, {:ok, value}} -> {:ok, [{atom_key, value} | results]}
-          {{:ok, _}, {:error, reason}} -> {:error, [reason]}
-          {{:error, errors}, {:ok, _}} -> {:error, errors}
-          {{:error, errors}, {:error, reason}} -> {:error, [reason | errors]}
+        case from_json(schema, value) do
+          {:ok, result} -> {:ok, {atom_key, result}}
+          {:error, reason} -> {:error, reason}
         end
       end)
+      |> reduce_results()
     case result do
       {:ok, results} -> {:ok, Enum.into(results, %{})}
       {:error, errors} -> {:error, errors}
     end
   end
-  defp do_convert([element_schema], array, _opts) do
-    result =
-      Enum.reduce(array, {:ok, []}, fn value, acc ->
-        case {acc, convert(element_schema, value)} do
-          {{:ok, results}, {:ok, value}} -> {:ok, [value | results]}
-          {{:ok, _}, {:error, reason}} -> {:error, [reason]}
-          {{:error, errors}, {:ok, _}} -> {:error, errors}
-          {{:error, errors}, {:error, reason}} -> {:error, [reason | errors]}
-        end
-      end)
-    case result do
-      {:ok, results} -> {:ok, Enum.reverse(results)}
-      {:error, errors} -> {:error, errors}
-    end
+  defp do_from_json([element_schema], array, _opts) do
+    array
+    |> Enum.map(fn value ->
+      from_json(element_schema, value)
+    end)
+    |> reduce_results(reverse: true)
   end
-  defp do_convert(schema, value, _opts) when is_atom(schema) and schema in @primitive_types do
+  defp do_from_json(schema, value, _opts) when is_atom(schema) and schema in @primitive_types do
     {:ok, value}
   end
-  defp do_convert(schema, value, opts) when is_atom(schema) do
+  defp do_from_json(schema, value, opts) when is_atom(schema) do
     if not simple_schema_implemented?(schema) do
       raise "#{schema} is not implemented SimpleSchema behaviour."
     end
 
-    case schema.convert(schema.schema(opts), value) do
-      {:ok, value} -> {:ok, value}
-      {:error, reason} -> {:error, reason}
+    schema.from_json(schema.schema(opts), value)
+  end
+
+  @doc """
+  Convert a simple schema value to JSON value.
+  """
+  def to_json(schema, value) do
+    {schema, opts} = split_opts(schema)
+    do_to_json(schema, value, opts)
+  end
+  defp do_to_json(%{} = schema, map, _opts) do
+    result =
+      schema
+      |> Enum.map(fn {key, type} ->
+        case Map.fetch(map, key) do
+          :error ->
+            {:error, {:key_not_found, key}}
+          {:ok, value} ->
+            case to_json(type, value) do
+              {:error, reason} ->
+                {:error, reason}
+              {:ok, json} ->
+                {:ok, {Atom.to_string(key), json}}
+            end
+        end
+      end)
+      |> reduce_results()
+    case result do
+      {:ok, results} -> {:ok, Enum.into(results, %{})}
+      {:error, errors} -> {:error, errors}
     end
+  end
+  defp do_to_json([element_schema], array, _opts) do
+    array
+    |> Enum.map(fn value ->
+      to_json(element_schema, value)
+    end)
+    |> reduce_results(reverse: true)
+  end
+  defp do_to_json(schema, value, _opts) when is_atom(schema) and schema in @primitive_types do
+    {:ok, value}
+  end
+  defp do_to_json(schema, value, opts) when is_atom(schema) do
+    if not simple_schema_implemented?(schema) do
+      raise "#{schema} is not implemented SimpleSchema behaviour."
+    end
+
+    schema.to_json(schema.schema(opts), value)
   end
 end

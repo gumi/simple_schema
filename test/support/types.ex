@@ -10,8 +10,13 @@ defmodule Person do
   end
 
   @impl SimpleSchema
-  def convert(schema, json) do
-    SimpleSchema.Schema.convert(schema, json)
+  def from_json(schema, json) do
+    SimpleSchema.Schema.from_json(schema, json)
+  end
+
+  @impl SimpleSchema
+  def to_json(schema, value) do
+    SimpleSchema.Schema.to_json(schema, value)
   end
 end
 
@@ -27,8 +32,13 @@ defmodule Group do
   end
 
   @impl SimpleSchema
-  def convert(schema, json) do
-    SimpleSchema.Schema.convert(schema, json)
+  def from_json(schema, json) do
+    SimpleSchema.Schema.from_json(schema, json)
+  end
+
+  @impl SimpleSchema
+  def to_json(schema, value) do
+    SimpleSchema.Schema.to_json(schema, value)
   end
 end
 

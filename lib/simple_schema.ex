@@ -4,7 +4,8 @@ defmodule SimpleSchema do
   """
 
   @callback schema(opts :: Keyword.t) :: SimpleSchema.Schema.simple_schema
-  @callback convert(schema :: SimpleSchema.Schema.simple_schema, value :: any) :: {:ok, any} | {:error, any}
+  @callback from_json(schema :: SimpleSchema.Schema.simple_schema, json :: any) :: {:ok, any} | {:error, any}
+  @callback to_json(schema :: SimpleSchema.Schema.simple_schema, value :: any) :: {:ok, any} | {:error, any}
 
   defp pop_default({value, opts}) do
     if Keyword.has_key?(opts, :default) do
@@ -50,8 +51,13 @@ defmodule SimpleSchema do
     end
 
     @impl SimpleSchema
-    def convert(schema, value) do
-      SimpleSchema.Type.struct(__MODULE__, schema, value)
+    def from_json(schema, value) do
+      SimpleSchema.Type.json_to_struct(__MODULE__, schema, value)
+    end
+
+    @impl SimpleSchema
+    def to_json(schema, value) do
+      SimpleSchema.Type.struct_to_json(__MODULE__, schema, value)
     end
   end
   ```
@@ -96,19 +102,29 @@ defmodule SimpleSchema do
       end
 
       @impl SimpleSchema
-      def convert(schema, value) do
-        SimpleSchema.Type.struct(__MODULE__, schema, value)
+      def from_json(schema, value) do
+        SimpleSchema.Type.json_to_struct(__MODULE__, schema, value)
+      end
+
+      @impl SimpleSchema
+      def to_json(schema, value) do
+        SimpleSchema.Type.struct_to_json(__MODULE__, schema, value)
       end
     end
   end
 
+  @doc """
+  Convert JSON value to a simple schema value.
+
+  JSON value is validated before it is converted to a simple schema value.
+  """
   def from_json(schema, json) do
     json_schema = SimpleSchema.Schema.to_json_schema(schema)
     case SimpleSchema.Validator.validate(schema, json_schema, json) do
       {:error, reason} ->
         {:error, reason}
       :ok ->
-        SimpleSchema.Schema.convert(schema, json)
+        SimpleSchema.Schema.from_json(schema, json)
     end
   end
 
@@ -120,4 +136,40 @@ defmodule SimpleSchema do
         raise "failed from_json/2: #{inspect reason}"
     end
   end
+
+  @doc """
+  Convert a simple schema value to JSON value.
+
+  If `optimistic: true` is specified in `opts`, JSON value is not validated after it is converted.
+  Otherwise, JSON value is validated after it is converted.
+  """
+  def to_json(schema, value, opts \\ []) do
+    optimistic = Keyword.get(opts, :optimistic, false)
+
+    case SimpleSchema.Schema.to_json(schema, value) do
+      {:error, reason} -> {:error, reason}
+      {:ok, json} ->
+        if optimistic do
+          {:ok, json}
+        else
+          json_schema = SimpleSchema.Schema.to_json_schema(schema)
+          case SimpleSchema.Validator.validate(schema, json_schema, json) do
+            {:error, reason} ->
+              {:error, reason}
+            :ok ->
+              {:ok, json}
+          end
+        end
+    end
+  end
+
+  def to_json!(schema, value, opts \\ []) do
+    case to_json(schema, value, opts) do
+      {:ok, json} ->
+        json
+      {:error, reason} ->
+        raise "failed to_json/3: #{inspect reason}"
+    end
+  end
+
 end

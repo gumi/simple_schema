@@ -77,7 +77,12 @@ defmodule SimpleSchema.SchemaTest do
     end
 
     @impl SimpleSchema
-    def convert(_schema, value) do
+    def from_json(_schema, value) do
+      {:ok, value}
+    end
+
+    @impl SimpleSchema
+    def to_json(_schema, value) do
       {:ok, value}
     end
   end
@@ -95,8 +100,13 @@ defmodule SimpleSchema.SchemaTest do
     end
 
     @impl SimpleSchema
-    def convert(schema, value) do
-      SimpleSchema.Type.struct(__MODULE__, schema, value)
+    def from_json(schema, value) do
+      SimpleSchema.Type.json_to_struct(__MODULE__, schema, value)
+    end
+
+    @impl SimpleSchema
+    def to_json(schema, value) do
+      SimpleSchema.Type.struct_to_json(__MODULE__, schema, value)
     end
   end
 
@@ -186,14 +196,15 @@ defmodule SimpleSchema.SchemaTest do
     schema = %{key1: %{key2: :integer}}
     json = %{"key1" => %{"key2" => 100}}
     expected = %{key1: %{key2: 100}}
-    assert {:ok, expected} == SimpleSchema.Schema.convert(schema, json)
+    assert {:ok, expected} == SimpleSchema.Schema.from_json(schema, json)
+    assert {:ok, json} == SimpleSchema.Schema.to_json(schema, expected)
   end
 
   test "Can not convert to nonexistent atom" do
     schema = %{}
     json = %{"unknown_key" => 100}
     assert_raise ArgumentError, fn ->
-      SimpleSchema.Schema.convert(schema, json)
+      SimpleSchema.Schema.from_json(schema, json)
     end
   end
 
@@ -201,24 +212,28 @@ defmodule SimpleSchema.SchemaTest do
     schema = [%{key: :integer}]
     json = [%{"key" => 10}, %{"key" => 20}]
     expected = [%{key: 10}, %{key: 20}]
-    assert {:ok, expected} == SimpleSchema.Schema.convert(schema, json)
+    assert {:ok, expected} == SimpleSchema.Schema.from_json(schema, json)
+    assert {:ok, json} == SimpleSchema.Schema.to_json(schema, expected)
   end
 
   test "can be converted the schema even if `:any` is mixed in the schema" do
     schema = %{key: :any}
     json = %{"key" => 10}
     expected = %{key: 10}
-    assert {:ok, expected} == SimpleSchema.Schema.convert(schema, json)
+    assert {:ok, expected} == SimpleSchema.Schema.from_json(schema, json)
+    assert {:ok, json} == SimpleSchema.Schema.to_json(schema, expected)
 
     json = %{"key" => %{"foo" => "bar"}}
     expected = %{key: %{"foo" => "bar"}}
-    assert {:ok, expected} == SimpleSchema.Schema.convert(schema, json)
+    assert {:ok, expected} == SimpleSchema.Schema.from_json(schema, json)
+    assert {:ok, json} == SimpleSchema.Schema.to_json(schema, expected)
   end
 
   test "can be converted the schema even if a module that implements SimpleSchema behaviour is mixed in the schema" do
     schema = %{key1: MyStruct1, key2: MyStruct2}
     json = %{"key1" => 10, "key2" => %{"value" => 20}}
     expected = %{key1: 10, key2: %MyStruct2{value: 20}}
-    assert {:ok, expected} == SimpleSchema.Schema.convert(schema, json)
+    assert {:ok, expected} == SimpleSchema.Schema.from_json(schema, json)
+    assert {:ok, json} == SimpleSchema.Schema.to_json(schema, expected)
   end
 end
