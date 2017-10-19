@@ -116,6 +116,7 @@ defmodule SimpleSchema.Schema do
   @primitive_types [:boolean, :integer, :number, :null, :string, :any]
 
   defp raise_if_not_empty([]), do: :ok
+  defp raise_if_not_empty([field: _]), do: :ok
 
   defp to_types(type, nullable)
   defp to_types(type, true), do: [type, "null"]
@@ -320,15 +321,28 @@ defmodule SimpleSchema.Schema do
     {schema, opts} = split_opts(schema)
     do_from_json(schema, value, opts)
   end
-  defp do_from_json(%{} = schema, map, _opts) do
+  defp do_from_json(%{} = schema, map, opts) do
+    lookup_field =
+      schema
+      |> Enum.map(fn {atom_key, schema} ->
+        {_, opts} = split_opts(schema)
+        field = Keyword.get(opts, :field, Atom.to_string(atom_key))
+        {field, atom_key}
+      end)
+      |> Enum.into(%{})
+
     result =
       map
       |> Enum.map(fn {key, value} ->
-        atom_key = String.to_existing_atom(key)
-        schema = Map.fetch!(schema, atom_key)
-        case from_json(schema, value) do
-          {:ok, result} -> {:ok, {atom_key, result}}
-          {:error, reason} -> {:error, reason}
+        case Map.fetch(lookup_field, key) do
+          :error ->
+            {:error, {:key_not_found, key, lookup_field}}
+          {:ok, atom_key} ->
+            schema = Map.fetch!(schema, atom_key)
+            case from_json(schema, value) do
+              {:ok, result} -> {:ok, {atom_key, result}}
+              {:error, reason} -> {:error, reason}
+            end
         end
       end)
       |> reduce_results()

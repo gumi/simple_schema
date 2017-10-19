@@ -203,9 +203,7 @@ defmodule SimpleSchema.SchemaTest do
   test "Can not convert to nonexistent atom" do
     schema = %{}
     json = %{"unknown_key" => 100}
-    assert_raise ArgumentError, fn ->
-      SimpleSchema.Schema.from_json(schema, json)
-    end
+    {:error, [{:key_not_found, "unknown_key", %{}}]} = SimpleSchema.Schema.from_json(schema, json)
   end
 
   test "Can convert JSON keys even if JSON Array contains JSON Object" do
