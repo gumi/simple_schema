@@ -118,9 +118,10 @@ defmodule SimpleSchema do
 
   JSON value is validated before it is converted to a simple schema value.
   """
-  def from_json(schema, json) do
+  def from_json(schema, json, opts \\ []) do
+    cache_key = Keyword.get(opts, :cache_key, schema)
     json_schema = SimpleSchema.Schema.to_json_schema(schema)
-    case SimpleSchema.Validator.validate(schema, json_schema, json) do
+    case SimpleSchema.Validator.validate(json_schema, json, cache_key) do
       {:error, reason} ->
         {:error, reason}
       :ok ->
@@ -128,8 +129,8 @@ defmodule SimpleSchema do
     end
   end
 
-  def from_json!(schema, json) do
-    case from_json(schema, json) do
+  def from_json!(schema, json, opts \\ []) do
+    case from_json(schema, json, opts) do
       {:ok, value} ->
         value
       {:error, reason} ->
@@ -145,6 +146,7 @@ defmodule SimpleSchema do
   """
   def to_json(schema, value, opts \\ []) do
     optimistic = Keyword.get(opts, :optimistic, false)
+    cache_key = Keyword.get(opts, :cache_key, schema)
 
     case SimpleSchema.Schema.to_json(schema, value) do
       {:error, reason} -> {:error, reason}
@@ -153,7 +155,7 @@ defmodule SimpleSchema do
           {:ok, json}
         else
           json_schema = SimpleSchema.Schema.to_json_schema(schema)
-          case SimpleSchema.Validator.validate(schema, json_schema, json) do
+          case SimpleSchema.Validator.validate(json_schema, json, cache_key) do
             {:error, reason} ->
               {:error, reason}
             :ok ->
