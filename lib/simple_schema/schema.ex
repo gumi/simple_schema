@@ -74,49 +74,24 @@ defmodule SimpleSchema.Schema do
   ```
   """
 
-  @type boolean_opt :: {:nullable, boolean} | {:optional, boolean}
-  @type boolean_opts :: [boolean_opt]
-  @type boolean_type :: :boolean | {:boolean, boolean_opts}
+  @type opts :: Keyword.t
 
-  @type integer_opt :: {:nullable, boolean} | {:maximum, integer} | {:minimum, integer} | {:enum, [integer, ...]} | {:optional, boolean}
-  @type integer_opts :: [integer_opt]
-  @type integer_type :: :integer | {:integer, integer_opts}
-
-  @type number_opt :: {:nullable, boolean} | {:maximum, float} | {:minimum, float} | {:optional, boolean}
-  @type number_opts :: [number_opt]
-  @type number_type :: :number | {:number, number_opts}
-
-  @type null_opt :: {:optional, boolean}
-  @type null_opts :: [null_opt]
-  @type null_type :: :null | {:null, null_opts}
-
-  @type string_format :: :datetime | :email
-  @type string_opt :: {:nullable, boolean} | {:max_length, non_neg_integer()} | {:min_length, non_neg_integer()} | {:enum, [String.t, ...]} | {:format, string_format} | {:optional, boolean}
-  @type string_opts :: [string_opt]
-  @type string_type :: :string | {:string, string_opts}
-
-  @type map_opt :: {:nullable, boolean} | {:optional, boolean}
-  @type map_opts :: [map_opt]
-  @type map_prim_type :: %{required(atom) => simple_schema}
-  @type map_type :: map_prim_type | {map_prim_type, map_opts}
-
-  @type array_opt :: {:nullable, boolean} | {:max_items, non_neg_integer()} | {:min_items, non_neg_integer()} | {:optional, boolean}
-  @type array_opts :: [array_opt]
-  @type array_type :: nonempty_list(simple_schema)
-
-  @type any_opt :: {:optional, boolean}
-  @type any_opts :: [any_opt]
-  @type any_type :: :any | {:any, any_opts}
-
-  @type module_opts :: Keyword.t
-  @type module_type :: module | {module, module_opts}
+  @type boolean_type :: :boolean | {:boolean, opts}
+  @type integer_type :: :integer | {:integer, opts}
+  @type number_type :: :number | {:number, opts}
+  @type null_type :: :null | {:null, opts}
+  @type string_type :: :string | {:string, opts}
+  @type map_type :: %{required(atom) => simple_schema} | {%{required(atom) => simple_schema}, opts}
+  @type array_type :: nonempty_list(simple_schema) | {nonempty_list(simple_schema), opts}
+  @type any_type :: :any | {:any, opts}
+  @type module_type :: module | {module, opts}
 
   @type simple_schema :: boolean_type | integer_type | number_type | null_type | string_type | map_type | array_type | any_type | module_type
 
   @primitive_types [:boolean, :integer, :number, :null, :string, :any]
 
-  defp raise_if_not_empty([]), do: :ok
-  defp raise_if_not_empty([field: _]), do: :ok
+  defp raise_if_unexpected_opts([]), do: :ok
+  defp raise_if_unexpected_opts([field: _]), do: :ok
 
   defp to_types(type, nullable)
   defp to_types(type, true), do: [type, "null"]
@@ -138,6 +113,16 @@ defmodule SimpleSchema.Schema do
   end
   defp pop_optional(type), do: {false, type}
 
+  defp get_field(key, {_, opts}) do
+    case Keyword.fetch(opts, :field) do
+      :error -> Atom.to_string(key)
+      {:ok, value} -> value
+    end
+  end
+  defp get_field(key, _) do
+    Atom.to_string(key)
+  end
+
   def simple_schema_implemented?(schema) when is_atom(schema) do
     Code.ensure_loaded(schema)
     function_exported?(schema, :schema, 1) and function_exported?(schema, :from_json, 2)
@@ -149,7 +134,7 @@ defmodule SimpleSchema.Schema do
   def to_json_schema(:boolean), do: to_json_schema({:boolean, []})
   def to_json_schema({:boolean, opts}) do
     {nullable, opts} = Keyword.pop(opts, :nullable, false)
-    raise_if_not_empty(opts)
+    raise_if_unexpected_opts(opts)
 
     types = to_types("boolean", nullable)
     %{"type" => types}
@@ -161,7 +146,7 @@ defmodule SimpleSchema.Schema do
     {maximum, opts} = Keyword.pop(opts, :maximum, :undefined)
     {minimum, opts} = Keyword.pop(opts, :minimum, :undefined)
     {enum, opts} = Keyword.pop(opts, :enum, :undefined)
-    raise_if_not_empty(opts)
+    raise_if_unexpected_opts(opts)
 
     types = to_types("integer", nullable)
     xs = [{"type", types}]
@@ -176,7 +161,7 @@ defmodule SimpleSchema.Schema do
     {nullable, opts} = Keyword.pop(opts, :nullable, false)
     {maximum, opts} = Keyword.pop(opts, :maximum, :undefined)
     {minimum, opts} = Keyword.pop(opts, :minimum, :undefined)
-    raise_if_not_empty(opts)
+    raise_if_unexpected_opts(opts)
 
     types = to_types("number", nullable)
     xs = [{"type", types}]
@@ -197,7 +182,7 @@ defmodule SimpleSchema.Schema do
     {min_length, opts} = Keyword.pop(opts, :min_length, :undefined)
     {enum, opts} = Keyword.pop(opts, :enum, :undefined)
     {format, opts} = Keyword.pop(opts, :format, :undefined)
-    raise_if_not_empty(opts)
+    raise_if_unexpected_opts(opts)
 
     types = to_types("string", nullable)
     xs = [{"type", types}]
@@ -210,7 +195,7 @@ defmodule SimpleSchema.Schema do
 
   def to_json_schema(:any), do: to_json_schema({:any, []})
   def to_json_schema({:any, opts}) do
-    raise_if_not_empty(opts)
+    raise_if_unexpected_opts(opts)
 
     # permit any types
     %{"type" => ["array", "boolean", "integer", "null", "number", "object", "string"]}
@@ -219,12 +204,13 @@ defmodule SimpleSchema.Schema do
   def to_json_schema(%{} = schema), do: to_json_schema({schema, []})
   def to_json_schema({%{} = schema, opts}) do
     {nullable, opts} = Keyword.pop(opts, :nullable, false)
-    raise_if_not_empty(opts)
+    raise_if_unexpected_opts(opts)
 
     properties =
       for {key, value} <- schema, into: %{} do
         {_optional, type} = pop_optional(value)
-        {Atom.to_string(key), to_json_schema(type)}
+        key = get_field(key, value)
+        {key, to_json_schema(type)}
       end
 
     required =
@@ -233,8 +219,8 @@ defmodule SimpleSchema.Schema do
            {optional, _type} = pop_optional(value)
            optional
          end)
-      |> Enum.map(fn {key, _value} ->
-           Atom.to_string(key)
+      |> Enum.map(fn {key, value} ->
+           get_field(key, value)
          end)
       |> Enum.sort()
 
@@ -256,7 +242,7 @@ defmodule SimpleSchema.Schema do
     {nullable, opts} = Keyword.pop(opts, :nullable, false)
     {max_items, opts} = Keyword.pop(opts, :max_items, :undefined)
     {min_items, opts} = Keyword.pop(opts, :min_items, :undefined)
-    raise_if_not_empty(opts)
+    raise_if_unexpected_opts(opts)
 
     types = to_types("array", nullable)
     xs = [{"type", types}, {"items", to_json_schema(type)}]
@@ -321,7 +307,7 @@ defmodule SimpleSchema.Schema do
     {schema, opts} = split_opts(schema)
     do_from_json(schema, value, opts)
   end
-  defp do_from_json(%{} = schema, map, opts) do
+  defp do_from_json(%{} = schema, map, _opts) do
     lookup_field =
       schema
       |> Enum.map(fn {atom_key, schema} ->
@@ -388,7 +374,8 @@ defmodule SimpleSchema.Schema do
               {:error, reason} ->
                 {:error, reason}
               {:ok, json} ->
-                {:ok, {Atom.to_string(key), json}}
+                key = get_field(key, type)
+                {:ok, {key, json}}
             end
         end
       end)

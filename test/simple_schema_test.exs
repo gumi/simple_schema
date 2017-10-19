@@ -90,4 +90,22 @@ defmodule SimpleSchemaTest do
     assert {:ok, expected} == SimpleSchema.from_json(MyStruct2, valid_json)
     assert {:ok, valid_json_output} == SimpleSchema.to_json(MyStruct2, expected)
   end
+
+  defmodule MyStruct3 do
+    import SimpleSchema, only: [defschema: 1]
+    defschema [
+      username: {:string, field: "_username"},
+      address: {:string, field: "_address", default: "", optional: true},
+    ]
+  end
+
+  test "each simple schema fields are mapped from each :field values" do
+    invalid_json = %{"username" => "abcd"}
+    valid_json = %{"_username" => "abcd"}
+    expected = %MyStruct3{username: "abcd"}
+    expected_json = %{"_username" => "abcd", "_address" => ""}
+    {:error, _} = SimpleSchema.from_json(MyStruct3, invalid_json)
+    assert {:ok, expected} == SimpleSchema.from_json(MyStruct3, valid_json)
+    assert {:ok, expected_json} == SimpleSchema.to_json(MyStruct3, expected)
+  end
 end

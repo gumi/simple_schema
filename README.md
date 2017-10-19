@@ -194,4 +194,5 @@ You can add restrictions such as `:maximum` and `:min_length` to types.
 - `{:max_length, non_neg_integer}`: Maximum length. Can specify it to `:string` type.
 - `{:enum, [...]}`: List of possible values for elements. Can specify it to `:integer` and `:string` types.
 - `{:format, :datetime | :email}`: Validate by pre-defined format. Can specify it to `:string` type.
-- `{:optional, boolean}`: If true, an element as a child element of `%{...}` is not required. You can only specify it to a type of the child element of `%{...}`
+- `{:optional, boolean}`: If true, an element as a child element of `%{...}` is not required. You can only specify it to a type of the child element of `%{...}`.
+- `{:field, string}`: Corresponding JSON field name. You can only specify it to a type of the child element of `%{...}`.
