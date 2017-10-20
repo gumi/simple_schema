@@ -7,6 +7,8 @@ defmodule SimpleSchema do
   @callback from_json(schema :: SimpleSchema.Schema.simple_schema, json :: any) :: {:ok, any} | {:error, any}
   @callback to_json(schema :: SimpleSchema.Schema.simple_schema, value :: any) :: {:ok, any} | {:error, any}
 
+  @type schema :: SimpleSchema.Schema.simple_schema
+
   defp pop_default({value, opts}) do
     if Keyword.has_key?(opts, :default) do
       {default, opts} = Keyword.pop(opts, :default)
