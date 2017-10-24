@@ -125,7 +125,7 @@ defmodule SimpleSchema.Schema do
 
   def simple_schema_implemented?(schema) when is_atom(schema) do
     Code.ensure_loaded(schema)
-    function_exported?(schema, :schema, 1) and function_exported?(schema, :from_json, 2)
+    function_exported?(schema, :schema, 1) and function_exported?(schema, :from_json, 3) and function_exported?(schema, :to_json, 3)
   end
   def simple_schema_implemented?(_) do
     false
@@ -352,7 +352,7 @@ defmodule SimpleSchema.Schema do
       raise "#{schema} is not implemented SimpleSchema behaviour."
     end
 
-    schema.from_json(schema.schema(opts), value)
+    schema.from_json(schema.schema(opts), value, opts)
   end
 
   @doc """
@@ -400,6 +400,6 @@ defmodule SimpleSchema.Schema do
       raise "#{schema} is not implemented SimpleSchema behaviour."
     end
 
-    schema.to_json(schema.schema(opts), value)
+    schema.to_json(schema.schema(opts), value, opts)
   end
 end

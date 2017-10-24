@@ -4,8 +4,8 @@ defmodule SimpleSchema do
   """
 
   @callback schema(opts :: Keyword.t) :: SimpleSchema.Schema.simple_schema
-  @callback from_json(schema :: SimpleSchema.Schema.simple_schema, json :: any) :: {:ok, any} | {:error, any}
-  @callback to_json(schema :: SimpleSchema.Schema.simple_schema, value :: any) :: {:ok, any} | {:error, any}
+  @callback from_json(schema :: SimpleSchema.Schema.simple_schema, json :: any, opts :: Keyword.t) :: {:ok, any} | {:error, any}
+  @callback to_json(schema :: SimpleSchema.Schema.simple_schema, value :: any, opts :: Keyword.t) :: {:ok, any} | {:error, any}
 
   @type schema :: SimpleSchema.Schema.simple_schema
 
@@ -53,12 +53,12 @@ defmodule SimpleSchema do
     end
 
     @impl SimpleSchema
-    def from_json(schema, value) do
+    def from_json(schema, value, _opts) do
       SimpleSchema.Type.json_to_struct(__MODULE__, schema, value)
     end
 
     @impl SimpleSchema
-    def to_json(schema, value) do
+    def to_json(schema, value, _opts) do
       SimpleSchema.Type.struct_to_json(__MODULE__, schema, value)
     end
   end
@@ -104,12 +104,12 @@ defmodule SimpleSchema do
       end
 
       @impl SimpleSchema
-      def from_json(schema, value) do
+      def from_json(schema, value, _opts) do
         SimpleSchema.Type.json_to_struct(__MODULE__, schema, value)
       end
 
       @impl SimpleSchema
-      def to_json(schema, value) do
+      def to_json(schema, value, _opts) do
         SimpleSchema.Type.struct_to_json(__MODULE__, schema, value)
       end
     end

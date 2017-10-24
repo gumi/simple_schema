@@ -77,12 +77,12 @@ defmodule SimpleSchema.SchemaTest do
     end
 
     @impl SimpleSchema
-    def from_json(_schema, value) do
+    def from_json(_schema, value, _opts) do
       {:ok, value}
     end
 
     @impl SimpleSchema
-    def to_json(_schema, value) do
+    def to_json(_schema, value, _opts) do
       {:ok, value}
     end
   end
@@ -100,12 +100,12 @@ defmodule SimpleSchema.SchemaTest do
     end
 
     @impl SimpleSchema
-    def from_json(schema, value) do
+    def from_json(schema, value, _opts) do
       SimpleSchema.Type.json_to_struct(__MODULE__, schema, value)
     end
 
     @impl SimpleSchema
-    def to_json(schema, value) do
+    def to_json(schema, value, _opts) do
       SimpleSchema.Type.struct_to_json(__MODULE__, schema, value)
     end
   end
