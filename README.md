@@ -2,6 +2,8 @@
 
 SimpleSchema is a schema for validating JSON and storing it in a specific type.
 
+[日本語ドキュメントはこちら](TODO)
+
 ## Examples
 
 Basic usage:
