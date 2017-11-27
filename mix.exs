@@ -9,7 +9,7 @@ defmodule SimpleSchema.Mixfile do
       elixirc_paths: elixirc_paths(Mix.env),
       description: "Validate JSON and store to a specified data structure",
       package: [
-        maintainers: ["melpon"],
+        maintainers: ["melpon", "kenichirow"],
         licenses: ["Apache 2.0"],
         links: %{"GitHub" => "https://github.com/gumi/simple_schema"},
       ],
