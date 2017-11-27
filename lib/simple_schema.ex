@@ -3,11 +3,11 @@ defmodule SimpleSchema do
   #{File.read!("README.md")}
   """
 
-  @callback schema(opts :: Keyword.t) :: SimpleSchema.Schema.simple_schema
-  @callback from_json(schema :: SimpleSchema.Schema.simple_schema, json :: any, opts :: Keyword.t) :: {:ok, any} | {:error, any}
-  @callback to_json(schema :: SimpleSchema.Schema.simple_schema, value :: any, opts :: Keyword.t) :: {:ok, any} | {:error, any}
+  @type simple_schema :: simple_schema
 
-  @type schema :: SimpleSchema.Schema.simple_schema
+  @callback schema(opts :: Keyword.t) :: simple_schema
+  @callback from_json(schema :: simple_schema, json :: any, opts :: Keyword.t) :: {:ok, any} | {:error, any}
+  @callback to_json(schema :: simple_schema, value :: any, opts :: Keyword.t) :: {:ok, any} | {:error, any}
 
   defp pop_default({value, opts}) do
     if Keyword.has_key?(opts, :default) do

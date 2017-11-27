@@ -188,8 +188,8 @@ Module type:
 You can add restrictions such as `:maximum` and `:min_length` to types.
 
 - `{:nullable, boolean}`: If `true`, you can be set `nil`. Can specify it to all types except `:null`.
-- `{:minimum, non_neg_integer}`: Minimum value. Can specify it to `:integer` and `:number` types.
-- `{:maximum, non_neg_integer}`: Maximum value. Can specify it to `:integer` and `:number` types.
+- `{:minimum, integer}`: Minimum value. Can specify it to `:integer` and `:number` types.
+- `{:maximum, integer}`: Maximum value. Can specify it to `:integer` and `:number` types.
 - `{:min_items, non_neg_integer}`: Minimum element count. Can specify it to `:array` type.
 - `{:max_items, non_neg_integer}`: Maximum element count. Can specify it to `:array` type.
 - `{:min_length, non_neg_integer}`: Minimum length. Can specify it to `:string` type.
