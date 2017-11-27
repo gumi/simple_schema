@@ -15,7 +15,8 @@ defmodule SimpleSchema.Mixfile do
       ],
       docs: [main: "SimpleSchema"],
       start_permanent: Mix.env == :prod,
-      deps: deps()
+      deps: deps(),
+      source_url: "https://github.com/gumi/simple_schema",
     ]
   end
 
