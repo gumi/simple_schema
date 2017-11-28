@@ -3,7 +3,7 @@ defmodule SimpleSchema do
   #{File.read!("README.md")}
   """
 
-  @type simple_schema :: simple_schema
+  @type simple_schema :: SimpleSchema.Schema.simple_schema
 
   @callback schema(opts :: Keyword.t) :: simple_schema
   @callback from_json(schema :: simple_schema, json :: any, opts :: Keyword.t) :: {:ok, any} | {:error, any}
