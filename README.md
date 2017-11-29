@@ -7,8 +7,8 @@ SimpleSchema is a schema for validating JSON and storing it in a specific schema
 ## Motivation
 
 When you are writing an HTTP API server, you may want to verify that the HTTP request body is correct.
-For validation only, you can use a library that implements JSON Schema.
-Fortunately Elixir has a library called ExJsonSchema that implements JSON Schema.
+For validation only, you can use a library that implements [JSON Schema](http://json-schema.org/).
+Fortunately Elixir has a library called [ExJsonSchema](https://github.com/jonasschmidt/ex_json_schema) that implements JSON Schema.
 
 However, it is hard to write JSON Schema by hand. I want to use a more simple schema.
 
@@ -170,7 +170,6 @@ The list of restrictions is as follows.
 A module that implements `SimpleSchema` behaiviour is also a simple schema.
 You can use this to name a specific schema or to convert it to a specific structure.
 
-例えば、`"2017-11-27T11:49:50+09:00"` といった ISO 8601 に従った日付を `DateTime` 型として取得するには、以下のように定義します。
 For example, to get the date according to ISO 8601 such as `"2017-11-27T11:49:50+09:00"` as a `DateTime` type, define it as follows.
 
 ```elixir
