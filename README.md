@@ -2,7 +2,7 @@
 
 SimpleSchema is a schema for validating JSON and storing it in a specific schema.
 
-[日本語ドキュメントはこちら](TODO)
+[日本語ドキュメントはこちら](https://qiita.com/melpon/items/9718f9ea107c0b9f799a)
 
 ## Motivation
 
