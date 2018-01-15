@@ -9,16 +9,13 @@ defmodule SimpleSchema do
   @callback from_json(schema :: simple_schema, json :: any, opts :: Keyword.t) :: {:ok, any} | {:error, any}
   @callback to_json(schema :: simple_schema, value :: any, opts :: Keyword.t) :: {:ok, any} | {:error, any}
 
-  defp pop_default({value, opts}) do
-    if Keyword.has_key?(opts, :default) do
-      {default, opts} = Keyword.pop(opts, :default)
-      {:ok, default, {value, opts}}
-    else
-      :error
-    end
+  @undefined_default :simple_schema_default_undefined
+
+  defp get_default({type, opts}) do
+    Keyword.get(opts, :default, @undefined_default)
   end
-  defp pop_default(_value) do
-    :error
+  defp get_default(type) do
+    @undefined_default
   end
 
   @doc ~S"""
@@ -44,7 +41,7 @@ defmodule SimpleSchema do
 
     @simple_schema %{
       username: {:string, min_length: 4},
-      email: {:string, optional: true, format: :email},
+      email: {:string, default: "", optional: true, format: :email},
     }
 
     @impl SimpleSchema
@@ -68,28 +65,21 @@ defmodule SimpleSchema do
     enforce_keys =
       schema
       |> Enum.filter(fn {_key, value} ->
-        case pop_default(value) do
-          {:ok, _default, _value} -> false
-          :error -> true
-        end
+        get_default(value) == @undefined_default
       end)
       |> Enum.map(fn {key, _} -> key end)
     structs =
       schema
       |> Enum.map(fn {key, value} ->
-        case pop_default(value) do
-          {:ok, default, _value} -> {key, default}
-          :error -> key
+        default = get_default(value)
+        if default == @undefined_default do
+          key
+        else
+          {key, default}
         end
       end)
-    simple_schema =
-      schema
-      |> Enum.map(fn {key, value} ->
-        case pop_default(value) do
-          {:ok, _default, value} -> {key, value}
-          :error -> {key, value}
-        end
-      end)
+    simple_schema = schema
+
     quote do
       @enforce_keys unquote(enforce_keys)
       defstruct unquote(structs)

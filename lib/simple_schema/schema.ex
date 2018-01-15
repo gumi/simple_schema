@@ -111,7 +111,20 @@ defmodule SimpleSchema.Schema do
     {optional, opts} = Keyword.pop(opts, :optional, false)
     {optional, {type, opts}}
   end
-  defp pop_optional(type), do: {false, type}
+  defp pop_optional(type) do
+    {false, type}
+  end
+
+  @undefined_default :simple_schema_default_undefined
+
+  defp pop_default({type, opts}) do
+    {optional, opts} = Keyword.pop(opts, :default, @undefined_default)
+    {optional, {type, opts}}
+  end
+  defp pop_default(type) do
+    {@undefined_default, type}
+  end
+
 
   defp get_field(key, {_, opts}) do
     case Keyword.fetch(opts, :field) do
@@ -207,20 +220,22 @@ defmodule SimpleSchema.Schema do
     raise_if_unexpected_opts(opts)
 
     properties =
-      for {key, value} <- schema, into: %{} do
-        {_optional, type} = pop_optional(value)
-        key = get_field(key, value)
+      for {key, type} <- schema, into: %{} do
+        {_optional, type} = pop_optional(type)
+        {_default, type} = pop_default(type)
+        key = get_field(key, type)
         {key, to_json_schema(type)}
       end
 
     required =
       schema
-      |> Enum.reject(fn {_key, value} ->
-           {optional, _type} = pop_optional(value)
-           optional
+      |> Enum.filter(fn {_key, type} ->
+           {optional, _type} = pop_optional(type)
+           {default, _type} = pop_default(type)
+           not optional && default == @undefined_default
          end)
-      |> Enum.map(fn {key, value} ->
-           get_field(key, value)
+      |> Enum.map(fn {key, type} ->
+           get_field(key, type)
          end)
       |> Enum.sort()
 
@@ -317,6 +332,18 @@ defmodule SimpleSchema.Schema do
       end)
       |> Enum.into(%{})
 
+    # Use default value if :default opts is specified
+    default_value =
+      schema
+      |> Enum.reduce([], fn {key, schema}, results ->
+        {_, opts} = split_opts(schema)
+        case Keyword.fetch(opts, :default) do
+          {:ok, default} -> [{key, default} | results]
+          :error -> results
+        end
+      end)
+      |> Enum.into(%{})
+
     result =
       map
       |> Enum.map(fn {key, value} ->
@@ -333,7 +360,7 @@ defmodule SimpleSchema.Schema do
       end)
       |> reduce_results()
     case result do
-      {:ok, results} -> {:ok, Enum.into(results, %{})}
+      {:ok, results} -> {:ok, Enum.into(results, default_value)}
       {:error, errors} -> {:error, errors}
     end
   end
@@ -368,7 +395,20 @@ defmodule SimpleSchema.Schema do
       |> Enum.map(fn {key, type} ->
         case Map.fetch(map, key) do
           :error ->
-            {:error, {:key_not_found, key}}
+            # get default value if :default opts is specified
+            {_, opts} = split_opts(type)
+            {default, type} = pop_default(opts)
+            if default == @undefined_default do
+              {:error, {:key_not_found, key}}
+            else
+              case to_json(type, default) do
+                {:error, reason} ->
+                  {:error, reason}
+                {:ok, json} ->
+                  key = get_field(key, type)
+                  {:ok, {key, json}}
+              end
+            end
           {:ok, value} ->
             case to_json(type, value) do
               {:error, reason} ->
