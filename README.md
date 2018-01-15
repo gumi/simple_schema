@@ -163,6 +163,7 @@ The list of restrictions is as follows.
 - `{:enum, [...]}`: List of possible values for elements. It can be specified as `:integer` and `:string`.
 - `{:format, :datetime | :email}`: Validate by pre-defined format. It can be specified as `:string`.
 - `{:optional, boolean}`: If true, the child element of `%{...}` is not required. It can be only specified as the child element of `%{...}`.
+- `{:default, any}`: If the default value is specified and a field of the map is not given, the specified default value is set to the field. It can be only specified as the child element of `%{...}`.
 - `{:field, string}`: Corresponding JSON field name. It can be only specified as the child element of `%{...}`.
 
 ## `SimpleSchema` behaiviour
