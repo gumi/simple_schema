@@ -234,4 +234,52 @@ defmodule SimpleSchema.SchemaTest do
     assert {:ok, expected} == SimpleSchema.Schema.from_json(schema, json)
     assert {:ok, json} == SimpleSchema.Schema.to_json(schema, expected)
   end
+
+  test "If a default value exists in the schema, it is set to the result if the key does not exist in a passed JSON" do
+    schema = %{key: {:string, default: "default"}}
+
+    json = %{"key" => "foo"}
+    expected = %{key: "foo"}
+    assert {:ok, expected} == SimpleSchema.Schema.from_json(schema, json)
+    assert {:ok, json} == SimpleSchema.Schema.to_json(schema, expected)
+
+    json = %{}
+    expected = %{key: "default"}
+    expected_json = %{"key" => "default"}
+    assert {:ok, expected} == SimpleSchema.Schema.from_json(schema, json)
+    assert {:ok, expected_json} == SimpleSchema.Schema.to_json(schema, expected)
+    assert {:ok, expected_json} == SimpleSchema.Schema.to_json(schema, %{})
+  end
+
+  test "If a default value exists in the schema, :optional option is ignored" do
+    schema = %{key: {:string, default: "default", optional: true}}
+
+    json = %{"key" => "foo"}
+    expected = %{key: "foo"}
+    assert {:ok, expected} == SimpleSchema.Schema.from_json(schema, json)
+    assert {:ok, json} == SimpleSchema.Schema.to_json(schema, expected)
+
+    json = %{}
+    expected = %{key: "default"}
+    expected_json = %{"key" => "default"}
+    assert {:ok, expected} == SimpleSchema.Schema.from_json(schema, json)
+    assert {:ok, expected_json} == SimpleSchema.Schema.to_json(schema, expected)
+    assert {:ok, expected_json} == SimpleSchema.Schema.to_json(schema, %{})
+  end
+
+  test "Default values can also be set for module-based schema" do
+    schema = %{key: {MyStruct2, default: %MyStruct2{value: 100}}}
+
+    json = %{"key" => %{"value" => 200}}
+    expected = %{key: %MyStruct2{value: 200}}
+    assert {:ok, expected} == SimpleSchema.Schema.from_json(schema, json)
+    assert {:ok, json} == SimpleSchema.Schema.to_json(schema, expected)
+
+    json = %{}
+    expected = %{key: %MyStruct2{value: 100}}
+    expected_json = %{"key" => %{"value" => 100}}
+    assert {:ok, expected} == SimpleSchema.Schema.from_json(schema, json)
+    assert {:ok, expected_json} == SimpleSchema.Schema.to_json(schema, expected)
+    assert {:ok, expected_json} == SimpleSchema.Schema.to_json(schema, %{})
+  end
 end

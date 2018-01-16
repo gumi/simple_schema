@@ -352,6 +352,7 @@ defmodule SimpleSchema.Schema do
             {:error, {:key_not_found, key, lookup_field}}
           {:ok, atom_key} ->
             schema = Map.fetch!(schema, atom_key)
+            {_default, schema} = pop_default(schema)
             case from_json(schema, value) do
               {:ok, result} -> {:ok, {atom_key, result}}
               {:error, reason} -> {:error, reason}
@@ -396,8 +397,7 @@ defmodule SimpleSchema.Schema do
         case Map.fetch(map, key) do
           :error ->
             # get default value if :default opts is specified
-            {_, opts} = split_opts(type)
-            {default, type} = pop_default(opts)
+            {default, type} = pop_default(type)
             if default == @undefined_default do
               {:error, {:key_not_found, key}}
             else
@@ -410,6 +410,7 @@ defmodule SimpleSchema.Schema do
               end
             end
           {:ok, value} ->
+            {_default, type} = pop_default(type)
             case to_json(type, value) do
               {:error, reason} ->
                 {:error, reason}

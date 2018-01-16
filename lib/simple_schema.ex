@@ -11,10 +11,10 @@ defmodule SimpleSchema do
 
   @undefined_default :simple_schema_default_undefined
 
-  defp get_default({type, opts}) do
+  defp get_default({_type, opts}) do
     Keyword.get(opts, :default, @undefined_default)
   end
-  defp get_default(type) do
+  defp get_default(_type) do
     @undefined_default
   end
 
