@@ -2,4 +2,5 @@
 
 ## 1.0.2
 
+- Implement `:default` opts to map schema.
 - Update documents.
