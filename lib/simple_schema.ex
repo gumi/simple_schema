@@ -3,17 +3,20 @@ defmodule SimpleSchema do
   #{File.read!("README.md")}
   """
 
-  @type simple_schema :: SimpleSchema.Schema.simple_schema
+  @type simple_schema :: SimpleSchema.Schema.simple_schema()
 
-  @callback schema(opts :: Keyword.t) :: simple_schema
-  @callback from_json(schema :: simple_schema, json :: any, opts :: Keyword.t) :: {:ok, any} | {:error, any}
-  @callback to_json(schema :: simple_schema, value :: any, opts :: Keyword.t) :: {:ok, any} | {:error, any}
+  @callback schema(opts :: Keyword.t()) :: simple_schema
+  @callback from_json(schema :: simple_schema, json :: any, opts :: Keyword.t()) ::
+              {:ok, any} | {:error, any}
+  @callback to_json(schema :: simple_schema, value :: any, opts :: Keyword.t()) ::
+              {:ok, any} | {:error, any}
 
   @undefined_default :simple_schema_default_undefined
 
   defp get_default({_type, opts}) do
     Keyword.get(opts, :default, @undefined_default)
   end
+
   defp get_default(_type) do
     @undefined_default
   end
@@ -68,16 +71,19 @@ defmodule SimpleSchema do
         get_default(value) == @undefined_default
       end)
       |> Enum.map(fn {key, _} -> key end)
+
     structs =
       schema
       |> Enum.map(fn {key, value} ->
         default = get_default(value)
+
         if default == @undefined_default do
           key
         else
           {key, default}
         end
       end)
+
     simple_schema = schema
 
     quote do
@@ -115,13 +121,16 @@ defmodule SimpleSchema do
   def from_json(schema, json, opts \\ []) do
     optimistic = Keyword.get(opts, :optimistic, false)
     cache_key = Keyword.get(opts, :cache_key, schema)
+
     if optimistic do
       SimpleSchema.Schema.from_json(schema, json)
     else
       get_json_schema = fn -> SimpleSchema.Schema.to_json_schema(schema) end
+
       case SimpleSchema.Validator.validate(get_json_schema, json, cache_key) do
         {:error, reason} ->
           {:error, reason}
+
         :ok ->
           SimpleSchema.Schema.from_json(schema, json)
       end
@@ -132,8 +141,9 @@ defmodule SimpleSchema do
     case from_json(schema, json, opts) do
       {:ok, value} ->
         value
+
       {:error, reason} ->
-        raise "failed from_json/2: #{inspect reason}"
+        raise "failed from_json/2: #{inspect(reason)}"
     end
   end
 
@@ -148,15 +158,19 @@ defmodule SimpleSchema do
     cache_key = Keyword.get(opts, :cache_key, schema)
 
     case SimpleSchema.Schema.to_json(schema, value) do
-      {:error, reason} -> {:error, reason}
+      {:error, reason} ->
+        {:error, reason}
+
       {:ok, json} ->
         if optimistic do
           {:ok, json}
         else
           get_json_schema = fn -> SimpleSchema.Schema.to_json_schema(schema) end
+
           case SimpleSchema.Validator.validate(get_json_schema, json, cache_key) do
             {:error, reason} ->
               {:error, reason}
+
             :ok ->
               {:ok, json}
           end
@@ -168,9 +182,9 @@ defmodule SimpleSchema do
     case to_json(schema, value, opts) do
       {:ok, json} ->
         json
+
       {:error, reason} ->
-        raise "failed to_json/3: #{inspect reason}"
+        raise "failed to_json/3: #{inspect(reason)}"
     end
   end
-
 end

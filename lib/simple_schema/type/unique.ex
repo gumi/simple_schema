@@ -10,13 +10,17 @@ defmodule SimpleSchema.Type.Unique do
   @impl SimpleSchema
   def from_json(schema, values, opts) do
     case SimpleSchema.from_json(schema, values) do
-      {:error, reason} -> {:error, reason}
+      {:error, reason} ->
+        {:error, reason}
+
       {:ok, values} ->
         case Keyword.fetch(opts, :unique_key) do
           :error ->
-            {:error, ":unique_key not found in #{inspect opts}"}
+            {:error, ":unique_key not found in #{inspect(opts)}"}
+
           {:ok, unique_key} ->
             uniqued_values = values |> Enum.uniq_by(&Map.fetch!(&1, unique_key))
+
             if length(values) == length(uniqued_values) do
               {:ok, values}
             else

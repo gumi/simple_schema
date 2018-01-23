@@ -3,6 +3,7 @@ defmodule SimpleSchema.Type do
     case SimpleSchema.Schema.from_json(schema, value) do
       {:error, reason} ->
         {:error, reason}
+
       {:ok, fields} ->
         {:ok, struct(type, fields)}
     end

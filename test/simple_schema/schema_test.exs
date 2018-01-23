@@ -9,32 +9,36 @@ defmodule SimpleSchema.SchemaTest do
   end
 
   test "Primitive type can be converted to JSON Schema" do
-    test_schema %{"type" => "boolean"}, :boolean
-    test_schema %{"type" => "integer"}, :integer
-    test_schema %{"type" => "number"}, :number
-    test_schema %{"type" => "null"}, :null
-    test_schema %{"type" => "string"}, :string
+    test_schema(%{"type" => "boolean"}, :boolean)
+    test_schema(%{"type" => "integer"}, :integer)
+    test_schema(%{"type" => "number"}, :number)
+    test_schema(%{"type" => "null"}, :null)
+    test_schema(%{"type" => "string"}, :string)
   end
 
   test "can define nullable type" do
-    test_schema %{"type" => ["boolean", "null"]}, {:boolean, nullable: true}
-    test_schema %{"type" => ["integer", "null"]}, {:integer, nullable: true}
-    test_schema %{"type" => ["number", "null"]}, {:number, nullable: true}
-    test_schema %{"type" => ["string", "null"]}, {:string, nullable: true}
+    test_schema(%{"type" => ["boolean", "null"]}, {:boolean, nullable: true})
+    test_schema(%{"type" => ["integer", "null"]}, {:integer, nullable: true})
+    test_schema(%{"type" => ["number", "null"]}, {:number, nullable: true})
+    test_schema(%{"type" => ["string", "null"]}, {:string, nullable: true})
+
     expected = %{
       "type" => ["object", "null"],
       "required" => ["x"],
       "additionalProperties" => false,
       "properties" => %{
-        "x" => %{"type" => "string"},
-      },
+        "x" => %{"type" => "string"}
+      }
     }
-    test_schema expected, {%{x: :string}, nullable: true}
+
+    test_schema(expected, {%{x: :string}, nullable: true})
+
     expected = %{
       "type" => ["array", "null"],
-      "items" => %{"type" => "string"},
+      "items" => %{"type" => "string"}
     }
-    test_schema expected, {[:string], nullable: true}
+
+    test_schema(expected, {[:string], nullable: true})
   end
 
   test "Maps can be converted to JSON Schema" do
@@ -43,29 +47,32 @@ defmodule SimpleSchema.SchemaTest do
       "required" => ["name"],
       "additionalProperties" => false,
       "properties" => %{
-        "name" => %{"type" => "string"},
-      },
+        "name" => %{"type" => "string"}
+      }
     }
-    test_schema expected, %{name: :string}
-    test_schema expected, %{name: {:string, optional: false}}
+
+    test_schema(expected, %{name: :string})
+    test_schema(expected, %{name: {:string, optional: false}})
 
     # optional
     expected = %{
       "type" => "object",
       "additionalProperties" => false,
       "properties" => %{
-        "name" => %{"type" => "string"},
-      },
+        "name" => %{"type" => "string"}
+      }
     }
-    test_schema expected, %{name: {:string, optional: true}}
+
+    test_schema(expected, %{name: {:string, optional: true}})
   end
 
   test "Lists can be converted to JSON Schema" do
     expected = %{
       "type" => "array",
-      "items" => %{"type" => "string"},
+      "items" => %{"type" => "string"}
     }
-    test_schema expected, [:string]
+
+    test_schema(expected, [:string])
   end
 
   defmodule MyStruct1 do
@@ -95,7 +102,7 @@ defmodule SimpleSchema.SchemaTest do
     @impl SimpleSchema
     def schema([]) do
       %{
-        value: :integer,
+        value: :integer
       }
     end
 
@@ -113,9 +120,10 @@ defmodule SimpleSchema.SchemaTest do
   test "can pass a module that implements the SimpleSchema behaviour" do
     expected = %{
       "type" => "integer",
-      "minimum" => 5,
+      "minimum" => 5
     }
-    test_schema expected, MyStruct1
+
+    test_schema(expected, MyStruct1)
   end
 
   test "can pass a module that defines a structure" do
@@ -123,11 +131,12 @@ defmodule SimpleSchema.SchemaTest do
       "type" => "object",
       "additionalProperties" => false,
       "properties" => %{
-        "value" => %{"type" => "integer"},
+        "value" => %{"type" => "integer"}
       },
-      "required" => ["value"],
+      "required" => ["value"]
     }
-    test_schema expected, MyStruct2
+
+    test_schema(expected, MyStruct2)
   end
 
   test "Error when passing wrong schema" do
@@ -157,18 +166,20 @@ defmodule SimpleSchema.SchemaTest do
       "type" => ["integer", "null"],
       "maximum" => 10,
       "minimum" => 5,
-      "enum" => [6, 8, 10],
+      "enum" => [6, 8, 10]
     }
-    test_schema expected, {:integer, nullable: true, maximum: 10, minimum: 5, enum: [6, 8, 10]}
+
+    test_schema(expected, {:integer, nullable: true, maximum: 10, minimum: 5, enum: [6, 8, 10]})
   end
 
   test "number restrictions" do
     expected = %{
       "type" => ["number", "null"],
       "maximum" => 10.5,
-      "minimum" => 5.5,
+      "minimum" => 5.5
     }
-    test_schema expected, {:number, nullable: true, maximum: 10.5, minimum: 5.5}
+
+    test_schema(expected, {:number, nullable: true, maximum: 10.5, minimum: 5.5})
   end
 
   test "string restrictions" do
@@ -177,9 +188,14 @@ defmodule SimpleSchema.SchemaTest do
       "maxLength" => 10,
       "minLength" => 1,
       "enum" => ["aaa@a.b", "bbb@a.b"],
-      "format" => "email",
+      "format" => "email"
     }
-    test_schema expected, {:string, nullable: true, max_length: 10, min_length: 1, enum: ["aaa@a.b", "bbb@a.b"], format: :email}
+
+    test_schema(
+      expected,
+      {:string,
+       nullable: true, max_length: 10, min_length: 1, enum: ["aaa@a.b", "bbb@a.b"], format: :email}
+    )
   end
 
   test "array restrictions" do
@@ -187,9 +203,10 @@ defmodule SimpleSchema.SchemaTest do
       "type" => ["array", "null"],
       "maxItems" => 10,
       "minItems" => 1,
-      "items" => %{"type" => "string"},
+      "items" => %{"type" => "string"}
     }
-    test_schema expected, {[:string], nullable: true, max_items: 10, min_items: 1}
+
+    test_schema(expected, {[:string], nullable: true, max_items: 10, min_items: 1})
   end
 
   test "JSON Object keys can be converted to atom keys" do

@@ -34,7 +34,7 @@ defmodule SimpleSchemaTest do
         username: {:string, min_length: 4},
         address: :string,
         internal: MyInternal,
-        datetime: {SimpleSchema.Type.DateTime, optional: true},
+        datetime: {SimpleSchema.Type.DateTime, optional: true}
       }
     end
 
@@ -54,10 +54,30 @@ defmodule SimpleSchemaTest do
     output_datetime = "2017-10-13T08:30:28Z"
 
     invalid_json = %{"username" => "abc", "address" => "", "internal" => %{"value" => nil}}
-    valid_json = %{"username" => "abcd", "address" => "", "internal" => %{"value" => 10}, "datetime" => input_datetime}
-    valid_json_output = %{"username" => "abcd", "address" => "", "internal" => %{"value" => 10}, "datetime" => output_datetime}
+
+    valid_json = %{
+      "username" => "abcd",
+      "address" => "",
+      "internal" => %{"value" => 10},
+      "datetime" => input_datetime
+    }
+
+    valid_json_output = %{
+      "username" => "abcd",
+      "address" => "",
+      "internal" => %{"value" => 10},
+      "datetime" => output_datetime
+    }
+
     {:ok, dt, _} = DateTime.from_iso8601(input_datetime)
-    expected = %MyStruct{username: "abcd", address: "", internal: %MyInternal{value: 10}, datetime: dt}
+
+    expected = %MyStruct{
+      username: "abcd",
+      address: "",
+      internal: %MyInternal{value: 10},
+      datetime: dt
+    }
+
     {:error, _} = SimpleSchema.from_json(MyStruct, invalid_json)
     assert {:ok, expected} == SimpleSchema.from_json(MyStruct, valid_json)
     assert {:ok, valid_json_output} == SimpleSchema.to_json(MyStruct, expected)
@@ -65,16 +85,18 @@ defmodule SimpleSchemaTest do
 
   defmodule MyInternal2 do
     import SimpleSchema, only: [defschema: 1]
-    defschema [value: {:integer, nullable: true}]
+    defschema(value: {:integer, nullable: true})
   end
+
   defmodule MyStruct2 do
     import SimpleSchema, only: [defschema: 1]
-    defschema [
+
+    defschema(
       username: {:string, min_length: 4},
       address: {:string, default: ""},
       internal: MyInternal2,
-      datetime: {SimpleSchema.Type.DateTime, optional: true},
-    ]
+      datetime: {SimpleSchema.Type.DateTime, optional: true}
+    )
   end
 
   test "JSON can be converted to MyStruct2 by from_json/2 with default value" do
@@ -82,10 +104,30 @@ defmodule SimpleSchemaTest do
     output_datetime = "2017-10-13T08:30:28Z"
 
     invalid_json = %{"username" => "abc", "address" => "", "internal" => %{"value" => nil}}
-    valid_json = %{"username" => "abcd", "address" => "", "internal" => %{"value" => 10}, "datetime" => input_datetime}
-    valid_json_output = %{"username" => "abcd", "address" => "", "internal" => %{"value" => 10}, "datetime" => output_datetime}
+
+    valid_json = %{
+      "username" => "abcd",
+      "address" => "",
+      "internal" => %{"value" => 10},
+      "datetime" => input_datetime
+    }
+
+    valid_json_output = %{
+      "username" => "abcd",
+      "address" => "",
+      "internal" => %{"value" => 10},
+      "datetime" => output_datetime
+    }
+
     {:ok, dt, _} = DateTime.from_iso8601(input_datetime)
-    expected = %MyStruct2{username: "abcd", address: "", internal: %MyInternal2{value: 10}, datetime: dt}
+
+    expected = %MyStruct2{
+      username: "abcd",
+      address: "",
+      internal: %MyInternal2{value: 10},
+      datetime: dt
+    }
+
     {:error, _} = SimpleSchema.from_json(MyStruct2, invalid_json)
     assert {:ok, expected} == SimpleSchema.from_json(MyStruct2, valid_json)
     assert {:ok, valid_json_output} == SimpleSchema.to_json(MyStruct2, expected)
@@ -93,10 +135,11 @@ defmodule SimpleSchemaTest do
 
   defmodule MyStruct3 do
     import SimpleSchema, only: [defschema: 1]
-    defschema [
+
+    defschema(
       username: {:string, field: "_username"},
-      address: {:string, field: "_address", default: "", optional: true},
-    ]
+      address: {:string, field: "_address", default: "", optional: true}
+    )
   end
 
   test "each simple schema fields are mapped from each :field values" do
