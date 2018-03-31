@@ -242,6 +242,7 @@ defmodule SimpleSchema.Schema do
 
   def to_json_schema({%{} = schema, opts}) do
     {nullable, opts} = Keyword.pop(opts, :nullable, false)
+    {tolerance, opts} = Keyword.pop(opts, :tolerant, false)
     raise_if_unexpected_opts(opts)
 
     properties =
@@ -268,7 +269,7 @@ defmodule SimpleSchema.Schema do
 
     xs = [
       {"type", types},
-      {"additionalProperties", false},
+      {"additionalProperties", tolerance},
       {"properties", properties}
     ]
 
