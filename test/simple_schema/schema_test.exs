@@ -299,4 +299,25 @@ defmodule SimpleSchema.SchemaTest do
     assert {:ok, expected_json} == SimpleSchema.Schema.to_json(schema, expected)
     assert {:ok, expected_json} == SimpleSchema.Schema.to_json(schema, %{})
   end
+
+  test "Additional properties are not allowed without setting `tolerant: true`" do
+    schema = %{key1: %{key2: :integer}}
+    json = %{"key1" => %{"key2" => 100, "key3" => 200}}
+    assert {:error, _} = SimpleSchema.Schema.from_json(schema, json)
+  end
+
+  test "Additional properties are allowed by setting `tolerant: true`" do
+    schema = %{key1: {%{key2: :integer}, tolerant: true}}
+    json = %{"key1" => %{"key2" => 100, "key3" => 200}}
+    expected = %{key1: %{key2: 100}}
+    assert {:ok, expected} == SimpleSchema.Schema.from_json(schema, json)
+  end
+
+  test "Additional properties could be set on most outer objects" do
+    schema = { %{key1: %{key2: :integer}}, tolerant: true }
+    json1 = %{"key1" => %{"key2" => 100}, "key3" => 200}
+    json2 = %{"key1" => %{"key2" => 100, "key3" => 200}}
+    assert {:ok, _} = SimpleSchema.Schema.from_json(schema, json1)
+    assert {:error, _} = SimpleSchema.Schema.from_json(schema, json2)
+  end
 end
