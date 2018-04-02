@@ -64,7 +64,7 @@ defmodule SimpleSchema do
   end
   ```
   """
-  defmacro defschema(schema) do
+  defmacro defschema(schema, options \\ []) do
     enforce_keys =
       schema
       |> Enum.filter(fn {_key, value} ->
@@ -96,7 +96,7 @@ defmodule SimpleSchema do
 
       @impl SimpleSchema
       def schema(opts) do
-        {@simple_schema, opts}
+        {@simple_schema, unquote(options) ++ opts}
       end
 
       @impl SimpleSchema

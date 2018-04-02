@@ -242,6 +242,7 @@ defmodule SimpleSchema.Schema do
 
   def to_json_schema({%{} = schema, opts}) do
     {nullable, opts} = Keyword.pop(opts, :nullable, false)
+    {tolerance, opts} = Keyword.pop(opts, :tolerant, false)
     raise_if_unexpected_opts(opts)
 
     properties =
@@ -268,7 +269,7 @@ defmodule SimpleSchema.Schema do
 
     xs = [
       {"type", types},
-      {"additionalProperties", false},
+      {"additionalProperties", tolerance},
       {"properties", properties}
     ]
 
@@ -358,7 +359,7 @@ defmodule SimpleSchema.Schema do
     do_from_json(schema, value, opts)
   end
 
-  defp do_from_json(%{} = schema, map, _opts) do
+  defp do_from_json(%{} = schema, map, opts) do
     lookup_field =
       schema
       |> Enum.map(fn {atom_key, schema} ->
@@ -367,6 +368,14 @@ defmodule SimpleSchema.Schema do
         {field, atom_key}
       end)
       |> Enum.into(%{})
+
+    # drop unknownlookup_field keys from map if :tolerant opts is `true`
+    map =
+      if Keyword.get(opts, :tolerant, false) do
+        map |> Map.take(lookup_field |> Map.keys())
+      else
+        map
+      end
 
     # Use default value if :default opts is specified
     default_value =
