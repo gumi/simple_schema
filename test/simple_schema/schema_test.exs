@@ -314,7 +314,7 @@ defmodule SimpleSchema.SchemaTest do
   end
 
   test "Additional properties could be set on most outer objects" do
-    schema = { %{key1: %{key2: :integer}}, tolerant: true }
+    schema = {%{key1: %{key2: :integer}}, tolerant: true}
     json1 = %{"key1" => %{"key2" => 100}, "key3" => 200}
     json2 = %{"key1" => %{"key2" => 100, "key3" => 200}}
     assert {:ok, _} = SimpleSchema.Schema.from_json(schema, json1)

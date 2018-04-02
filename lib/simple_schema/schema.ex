@@ -369,7 +369,7 @@ defmodule SimpleSchema.Schema do
       end)
       |> Enum.into(%{})
 
-    # drop unknownlookup_field keys from map if :tolerant opts is `true`
+    # drop unknown lookup_field keys from map if :tolerant opts is `true`
     map =
       if Keyword.get(opts, :tolerant, false) do
         map |> Map.take(lookup_field |> Map.keys())
