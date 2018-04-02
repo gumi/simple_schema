@@ -18,16 +18,18 @@ defmodule SimpleSchema.Type.DateTime do
     do_from_json(schema, value, opts)
   end
 
+  defp do_to_json(_schema, nil, _opts), do: {:ok, ""}
+
+  defp do_to_json(_schema, value, _opts) do
+    {:ok, DateTime.to_iso8601(value)}
+  end
+
   defp do_from_json(_schema, nil, _opts), do: {:ok, nil}
+
   defp do_from_json(_schema, value, _opts) do
     case DateTime.from_iso8601(value) do
       {:ok, datetime, _} -> {:ok, datetime}
       {:error, reason} -> {:error, reason}
     end
-  end
-
-  defp do_to_json(_schema, nil, _opts), do: {:ok, ""}
-  defp do_to_json(_schema, value, _opts) do
-    {:ok, DateTime.to_iso8601(value)}
   end
 end

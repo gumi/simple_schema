@@ -142,7 +142,6 @@ defmodule SimpleSchemaTest do
     )
   end
 
-
   defmodule MyStruct.Nullable do
     defstruct [:id, :datetime]
 
@@ -179,6 +178,7 @@ defmodule SimpleSchemaTest do
       id: 1,
       datetime: nil
     }
+
     normal_output = %MyStruct.Nullable{
       id: 1,
       datetime: datetime
