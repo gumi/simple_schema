@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+
+- `SimpleSchema.Type.DateTime` can be nullable.
+
 ## 1.1.0
 
 - Add `:tolerant` option to allow non-specified keys.
