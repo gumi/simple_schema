@@ -34,7 +34,7 @@ defmodule SimpleSchemaTest do
         username: {:string, min_length: 4},
         address: :string,
         internal: MyInternal,
-        datetime: {SimpleSchema.Type.DateTime, optional: true, nullable: true}
+        datetime: {SimpleSchema.Type.DateTime, optional: true}
       }
     end
 
@@ -168,25 +168,26 @@ defmodule SimpleSchemaTest do
 
   test "JSON can be converted to MyStruct.Nullable by from_json/2 with nullable DateTime" do
     input_datetime = "2017-10-13T17:30:28+09:00"
+    output_datetime = "2017-10-13T08:30:28Z"
+
+    normal_json = %{"id" => 1, "datetime" => input_datetime}
+    null_json = %{"id" => 1, "datetime" => nil}
+    omitted_json = %{"id" => 1}
+
     {:ok, datetime, _} = DateTime.from_iso8601(input_datetime)
 
-    normal_input = %{"id" => 1, "datetime" => input_datetime}
-    null_input = %{"id" => 1, "datetime" => nil}
-    omitted_input = %{"id" => 1}
+    null_expected = %MyStruct.Nullable{id: 1, datetime: nil}
+    expected = %MyStruct.Nullable{id: 1, datetime: datetime}
 
-    null_datetime_output = %MyStruct.Nullable{
-      id: 1,
-      datetime: nil
-    }
+    assert {:ok, null_expected} == SimpleSchema.from_json(MyStruct.Nullable, null_json)
+    assert {:ok, null_expected} == SimpleSchema.from_json(MyStruct.Nullable, omitted_json)
+    assert {:ok, expected} == SimpleSchema.from_json(MyStruct.Nullable, normal_json)
 
-    normal_output = %MyStruct.Nullable{
-      id: 1,
-      datetime: datetime
-    }
+    null_expected_json = %{"id" => 1, "datetime" => nil}
+    expected_json = %{"id" => 1, "datetime" => output_datetime}
 
-    assert {:ok, null_datetime_output} == SimpleSchema.from_json(MyStruct.Nullable, null_input)
-    assert {:ok, null_datetime_output} == SimpleSchema.from_json(MyStruct.Nullable, omitted_input)
-    assert {:ok, normal_output} == SimpleSchema.from_json(MyStruct.Nullable, normal_input)
+    assert {:ok, expected_json} == SimpleSchema.to_json(MyStruct.Nullable, expected)
+    assert {:ok, null_expected_json} == SimpleSchema.to_json(MyStruct.Nullable, null_expected)
   end
 
   test "each simple schema fields are mapped from each :field values" do
