@@ -142,6 +142,54 @@ defmodule SimpleSchemaTest do
     )
   end
 
+  defmodule MyStruct.Nullable do
+    defstruct [:id, :datetime]
+
+    @behaviour SimpleSchema
+
+    @impl SimpleSchema
+    def schema([]) do
+      %{
+        id: :integer,
+        datetime: {SimpleSchema.Type.DateTime, optional: true, nullable: true}
+      }
+    end
+
+    @impl SimpleSchema
+    def from_json(schema, value, _opts) do
+      SimpleSchema.Type.json_to_struct(__MODULE__, schema, value)
+    end
+
+    @impl SimpleSchema
+    def to_json(schema, value, _opts) do
+      SimpleSchema.Type.struct_to_json(__MODULE__, schema, value)
+    end
+  end
+
+  test "JSON can be converted to MyStruct.Nullable by from_json/2 with nullable DateTime" do
+    input_datetime = "2017-10-13T17:30:28+09:00"
+    output_datetime = "2017-10-13T08:30:28Z"
+
+    normal_json = %{"id" => 1, "datetime" => input_datetime}
+    null_json = %{"id" => 1, "datetime" => nil}
+    omitted_json = %{"id" => 1}
+
+    {:ok, datetime, _} = DateTime.from_iso8601(input_datetime)
+
+    null_expected = %MyStruct.Nullable{id: 1, datetime: nil}
+    expected = %MyStruct.Nullable{id: 1, datetime: datetime}
+
+    assert {:ok, null_expected} == SimpleSchema.from_json(MyStruct.Nullable, null_json)
+    assert {:ok, null_expected} == SimpleSchema.from_json(MyStruct.Nullable, omitted_json)
+    assert {:ok, expected} == SimpleSchema.from_json(MyStruct.Nullable, normal_json)
+
+    null_expected_json = %{"id" => 1, "datetime" => nil}
+    expected_json = %{"id" => 1, "datetime" => output_datetime}
+
+    assert {:ok, expected_json} == SimpleSchema.to_json(MyStruct.Nullable, expected)
+    assert {:ok, null_expected_json} == SimpleSchema.to_json(MyStruct.Nullable, null_expected)
+  end
+
   test "each simple schema fields are mapped from each :field values" do
     invalid_json = %{"username" => "abcd"}
     valid_json = %{"_username" => "abcd"}
