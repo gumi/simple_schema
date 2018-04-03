@@ -18,7 +18,7 @@ defmodule SimpleSchema.Type.DateTime do
     do_from_json(schema, value, opts)
   end
 
-  defp do_to_json(_schema, nil, _opts), do: {:ok, ""}
+  defp do_to_json(_schema, nil, _opts), do: {:ok, nil}
 
   defp do_to_json(_schema, value, _opts) do
     {:ok, DateTime.to_iso8601(value)}
