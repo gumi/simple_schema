@@ -1,6 +1,6 @@
 %{
-  "earmark": {:hex, :earmark, "1.2.4", "99b637c62a4d65a20a9fb674b8cffb8baa771c04605a80c911c4418c69b75439", [:mix], [], "hexpm"},
-  "ex_doc": {:hex, :ex_doc, "0.18.1", "37c69d2ef62f24928c1f4fdc7c724ea04aecfdf500c4329185f8e3649c915baf", [:mix], [{:earmark, "~> 1.1", [hex: :earmark, repo: "hexpm", optional: false]}], "hexpm"},
-  "ex_json_schema": {:hex, :ex_json_schema, "0.5.5", "d8d4c3f47b86c9e634e124d518b290dda82a8b94dcc314e45af10042fc369361", [:mix], [], "hexpm"},
-  "memoize": {:hex, :memoize, "1.2.5", "aa319c1a08d0564b5f69e4b190412ecab6e3a90b641663d46630e8d9778bb55c", [:mix], [], "hexpm"},
+  "earmark": {:hex, :earmark, "1.2.5", "4d21980d5d2862a2e13ec3c49ad9ad783ffc7ca5769cf6ff891a4553fbaae761", [:mix], [], "hexpm"},
+  "ex_doc": {:hex, :ex_doc, "0.18.3", "f4b0e4a2ec6f333dccf761838a4b253d75e11f714b85ae271c9ae361367897b7", [:mix], [{:earmark, "~> 1.1", [hex: :earmark, repo: "hexpm", optional: false]}], "hexpm"},
+  "ex_json_schema": {:hex, :ex_json_schema, "0.5.6", "9a96edd51a00fc005e12a773a7a79e507a77855e69fcb3d9a02f7f39c3265c03", [:mix], [], "hexpm"},
+  "memoize": {:hex, :memoize, "1.2.7", "fd435d76496717561dc14af9135def1a9d5cab400939bf2b784764fabafe1655", [:mix], [], "hexpm"},
 }

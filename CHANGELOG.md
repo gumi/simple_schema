@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.2
+
+- Update dependencies
+
 ## 1.1.1
 
 - `SimpleSchema.Type.DateTime` can be nullable.
