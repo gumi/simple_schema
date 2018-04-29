@@ -143,7 +143,7 @@ defmodule SimpleSchema do
         value
 
       {:error, reason} ->
-        raise "failed from_json/2: #{inspect(reason)}"
+        raise SimpleSchema.FromJsonError, reason: reason
     end
   end
 
@@ -184,7 +184,7 @@ defmodule SimpleSchema do
         json
 
       {:error, reason} ->
-        raise "failed to_json/3: #{inspect(reason)}"
+        raise SimpleSchema.ToJsonError, reason: reason
     end
   end
 end
