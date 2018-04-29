@@ -97,7 +97,7 @@ You can also possible to add restriction to integers.
 
 ```elixir
 value = SimpleSchema.from_json!({:integer, minimum: 10, maximum: 20}, 5)
-# RuntimeError: [{"Expected the value to be >= 10", "#"}]
+# ** (SimpleSchema.FromJsonError) failed from_json/2: [{"Expected the value to be >= 10", "#"}]
 ```
 
 `{:integer, opts}` is also a simple schema.
