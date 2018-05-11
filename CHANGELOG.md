@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.3
+
+- `SimpleSchema.Type.json_to_struct/3` and `SimpleSchema.Type.struct_to_json/3` can be nullable.
+
 ## 1.1.2
 
 - Update dependencies

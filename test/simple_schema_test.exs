@@ -133,13 +133,32 @@ defmodule SimpleSchemaTest do
     assert {:ok, valid_json_output} == SimpleSchema.to_json(MyStruct2, expected)
   end
 
-  defmodule MyStruct3 do
+  defmodule MyStruct2.Nullable do
     import SimpleSchema, only: [defschema: 1]
 
     defschema(
-      username: {:string, field: "_username"},
-      address: {:string, field: "_address", default: "", optional: true}
+      internal: {MyInternal2, nullable: true},
+      internal2: {MyInternal2, nullable: true, default: nil}
     )
+  end
+
+  test "JSON can be converted to MyStruct2.Nullable by from_json/2" do
+    invalid_json = %{}
+    valid_json = %{"internal" => nil}
+
+    valid_json_output = %{
+      "internal" => nil,
+      "internal2" => nil,
+    }
+
+    expected = %MyStruct2.Nullable{
+      internal: nil,
+      internal2: nil,
+    }
+
+    {:error, _} = SimpleSchema.from_json(MyStruct2.Nullable, invalid_json)
+    assert {:ok, expected} == SimpleSchema.from_json(MyStruct2.Nullable, valid_json)
+    assert {:ok, valid_json_output} == SimpleSchema.to_json(MyStruct2.Nullable, expected)
   end
 
   defmodule MyStruct.Nullable do
@@ -188,6 +207,15 @@ defmodule SimpleSchemaTest do
 
     assert {:ok, expected_json} == SimpleSchema.to_json(MyStruct.Nullable, expected)
     assert {:ok, null_expected_json} == SimpleSchema.to_json(MyStruct.Nullable, null_expected)
+  end
+
+  defmodule MyStruct3 do
+    import SimpleSchema, only: [defschema: 1]
+
+    defschema(
+      username: {:string, field: "_username"},
+      address: {:string, field: "_address", default: "", optional: true}
+    )
   end
 
   test "each simple schema fields are mapped from each :field values" do
