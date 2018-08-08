@@ -288,12 +288,14 @@ defmodule SimpleSchema.Schema do
     {nullable, opts} = Keyword.pop(opts, :nullable, false)
     {max_items, opts} = Keyword.pop(opts, :max_items, :undefined)
     {min_items, opts} = Keyword.pop(opts, :min_items, :undefined)
+    {unique_items, opts} = Keyword.pop(opts, :unique_items, :undefined)
     raise_if_unexpected_opts(opts)
 
     types = to_types("array", nullable)
     xs = [{"type", types}, {"items", to_json_schema(type)}]
     xs = add_if_not_undefined(xs, "maxItems", max_items)
     xs = add_if_not_undefined(xs, "minItems", min_items)
+    xs = add_if_not_undefined(xs, "uniqueItems", unique_items)
     Enum.into(xs, %{})
   end
 

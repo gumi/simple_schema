@@ -158,6 +158,7 @@ The list of restrictions is as follows.
 - `{:maximum, integer}`: Maximum value. It can be specified as `:integer` and `:number`.
 - `{:min_items, non_neg_integer}`: Minimum element count. It can be specified as `:array`.
 - `{:max_items, non_neg_integer}`: Maximum element count. It can be specified as `:array`.
+- `{:unique_items, boolean}`: If `true`, the array is required as unique. It can be specified as `:array`.
 - `{:min_length, non_neg_integer}`: Minimum length. It can be specified as `:string`.
 - `{:max_length, non_neg_integer}`: Maximum length. It can be specified as `:string`.
 - `{:enum, [...]}`: List of possible values for elements. It can be specified as `:integer` and `:string`.

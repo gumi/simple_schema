@@ -227,4 +227,22 @@ defmodule SimpleSchemaTest do
     assert {:ok, expected} == SimpleSchema.from_json(MyStruct3, valid_json)
     assert {:ok, expected_json} == SimpleSchema.to_json(MyStruct3, expected)
   end
+
+  defmodule MyStruct4 do
+    import SimpleSchema, only: [defschema: 1]
+
+    defschema(gift_ids: {[:integer], max_items: 5, unique_items: true})
+  end
+
+  test "array restriction is valid" do
+    invalid_json = %{"gift_ids" => [1, 2, 3, 4, 5, 6]}
+    invalid_json2 = %{"gift_ids" => [1, 2, 3, 4, 3]}
+    valid_json = %{"gift_ids" => [1, 2, 3, 4, 5]}
+    expected = %MyStruct4{gift_ids: [1, 2, 3, 4, 5]}
+    expected_json = valid_json
+    {:error, _} = SimpleSchema.from_json(MyStruct4, invalid_json)
+    {:error, _} = SimpleSchema.from_json(MyStruct4, invalid_json2)
+    assert {:ok, expected} == SimpleSchema.from_json(MyStruct4, valid_json)
+    assert {:ok, expected_json} == SimpleSchema.to_json(MyStruct4, expected)
+  end
 end

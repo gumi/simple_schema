@@ -203,10 +203,11 @@ defmodule SimpleSchema.SchemaTest do
       "type" => ["array", "null"],
       "maxItems" => 10,
       "minItems" => 1,
+      "uniqueItems" => true,
       "items" => %{"type" => "string"}
     }
 
-    test_schema(expected, {[:string], nullable: true, max_items: 10, min_items: 1})
+    test_schema(expected, {[:string], nullable: true, max_items: 10, min_items: 1, unique_items: true})
   end
 
   test "JSON Object keys can be converted to atom keys" do
