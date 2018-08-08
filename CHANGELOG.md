@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.5
+
+- Add `:unique_items` restriction for array simple schema.
+
 ## 1.1.4
 
 - Update dependencies
