@@ -321,4 +321,24 @@ defmodule SimpleSchema.SchemaTest do
     assert {:ok, _} = SimpleSchema.Schema.from_json(schema, json1)
     assert {:error, _} = SimpleSchema.Schema.from_json(schema, json2)
   end
+
+  test ":struct_converter opts can convert any JSON" do
+    schema = %{key1: MyStruct1}
+    struct_converter = fn schema, _opts ->
+      %{"$ref" => "#/schemas/#{inspect(schema)}"}
+    end
+
+    expected = %{
+      "type" => "object",
+      "properties" => %{
+        "key1" => %{
+          "$ref" => "#/schemas/SimpleSchema.SchemaTest.MyStruct1"
+        },
+      },
+      "additionalProperties" => false,
+      "required" => ["key1"]
+    }
+
+    assert expected == SimpleSchema.Schema.to_json_schema(schema, struct_converter: struct_converter)
+  end
 end

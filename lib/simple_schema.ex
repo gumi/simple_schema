@@ -125,7 +125,7 @@ defmodule SimpleSchema do
     if optimistic do
       SimpleSchema.Schema.from_json(schema, json)
     else
-      get_json_schema = fn -> SimpleSchema.Schema.to_json_schema(schema) end
+      get_json_schema = fn -> SimpleSchema.Schema.to_json_schema(schema, opts) end
 
       case SimpleSchema.Validator.validate(get_json_schema, json, cache_key) do
         {:error, reason} ->
@@ -165,7 +165,7 @@ defmodule SimpleSchema do
         if optimistic do
           {:ok, json}
         else
-          get_json_schema = fn -> SimpleSchema.Schema.to_json_schema(schema) end
+          get_json_schema = fn -> SimpleSchema.Schema.to_json_schema(schema, opts) end
 
           case SimpleSchema.Validator.validate(get_json_schema, json, cache_key) do
             {:error, reason} ->

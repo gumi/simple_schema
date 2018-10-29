@@ -162,9 +162,11 @@ defmodule SimpleSchema.Schema do
     false
   end
 
-  def to_json_schema(:boolean), do: to_json_schema({:boolean, []})
+  def to_json_schema(schema, global_opts \\ [])
 
-  def to_json_schema({:boolean, opts}) do
+  def to_json_schema(:boolean, global_opts), do: to_json_schema({:boolean, []}, global_opts)
+
+  def to_json_schema({:boolean, opts}, _global_opts) do
     {nullable, opts} = Keyword.pop(opts, :nullable, false)
     raise_if_unexpected_opts(opts)
 
@@ -172,9 +174,9 @@ defmodule SimpleSchema.Schema do
     %{"type" => types}
   end
 
-  def to_json_schema(:integer), do: to_json_schema({:integer, []})
+  def to_json_schema(:integer, global_opts), do: to_json_schema({:integer, []}, global_opts)
 
-  def to_json_schema({:integer, opts}) do
+  def to_json_schema({:integer, opts}, _global_opts) do
     {nullable, opts} = Keyword.pop(opts, :nullable, false)
     {maximum, opts} = Keyword.pop(opts, :maximum, :undefined)
     {minimum, opts} = Keyword.pop(opts, :minimum, :undefined)
@@ -189,9 +191,9 @@ defmodule SimpleSchema.Schema do
     Enum.into(xs, %{})
   end
 
-  def to_json_schema(:number), do: to_json_schema({:number, []})
+  def to_json_schema(:number, global_opts), do: to_json_schema({:number, []}, global_opts)
 
-  def to_json_schema({:number, opts}) do
+  def to_json_schema({:number, opts}, _global_opts) do
     {nullable, opts} = Keyword.pop(opts, :nullable, false)
     {maximum, opts} = Keyword.pop(opts, :maximum, :undefined)
     {minimum, opts} = Keyword.pop(opts, :minimum, :undefined)
@@ -204,15 +206,15 @@ defmodule SimpleSchema.Schema do
     Enum.into(xs, %{})
   end
 
-  def to_json_schema(:null), do: to_json_schema({:null, []})
+  def to_json_schema(:null, global_opts), do: to_json_schema({:null, []}, global_opts)
 
-  def to_json_schema({:null, []}) do
+  def to_json_schema({:null, []}, _global_opts) do
     %{"type" => "null"}
   end
 
-  def to_json_schema(:string), do: to_json_schema({:string, []})
+  def to_json_schema(:string, global_opts), do: to_json_schema({:string, []}, global_opts)
 
-  def to_json_schema({:string, opts}) do
+  def to_json_schema({:string, opts}, _global_opts) do
     {nullable, opts} = Keyword.pop(opts, :nullable, false)
     {max_length, opts} = Keyword.pop(opts, :max_length, :undefined)
     {min_length, opts} = Keyword.pop(opts, :min_length, :undefined)
@@ -229,18 +231,18 @@ defmodule SimpleSchema.Schema do
     Enum.into(xs, %{})
   end
 
-  def to_json_schema(:any), do: to_json_schema({:any, []})
+  def to_json_schema(:any, global_opts), do: to_json_schema({:any, []}, global_opts)
 
-  def to_json_schema({:any, opts}) do
+  def to_json_schema({:any, opts}, _global_opts) do
     raise_if_unexpected_opts(opts)
 
     # permit any types
     %{"type" => ["array", "boolean", "integer", "null", "number", "object", "string"]}
   end
 
-  def to_json_schema(%{} = schema), do: to_json_schema({schema, []})
+  def to_json_schema(%{} = schema, global_opts), do: to_json_schema({schema, []}, global_opts)
 
-  def to_json_schema({%{} = schema, opts}) do
+  def to_json_schema({%{} = schema, opts}, global_opts) do
     {nullable, opts} = Keyword.pop(opts, :nullable, false)
     {tolerance, opts} = Keyword.pop(opts, :tolerant, false)
     raise_if_unexpected_opts(opts)
@@ -250,7 +252,7 @@ defmodule SimpleSchema.Schema do
         {_optional, type} = pop_optional(type)
         {_default, type} = pop_default(type)
         key = get_field(key, type)
-        {key, to_json_schema(type)}
+        {key, to_json_schema(type, global_opts)}
       end
 
     required =
@@ -282,9 +284,9 @@ defmodule SimpleSchema.Schema do
     Enum.into(xs, %{})
   end
 
-  def to_json_schema([_type] = array), do: to_json_schema({array, []})
+  def to_json_schema([_type] = array, global_opts), do: to_json_schema({array, []}, global_opts)
 
-  def to_json_schema({[type], opts}) do
+  def to_json_schema({[type], opts}, global_opts) do
     {nullable, opts} = Keyword.pop(opts, :nullable, false)
     {max_items, opts} = Keyword.pop(opts, :max_items, :undefined)
     {min_items, opts} = Keyword.pop(opts, :min_items, :undefined)
@@ -292,28 +294,33 @@ defmodule SimpleSchema.Schema do
     raise_if_unexpected_opts(opts)
 
     types = to_types("array", nullable)
-    xs = [{"type", types}, {"items", to_json_schema(type)}]
+    xs = [{"type", types}, {"items", to_json_schema(type, global_opts)}]
     xs = add_if_not_undefined(xs, "maxItems", max_items)
     xs = add_if_not_undefined(xs, "minItems", min_items)
     xs = add_if_not_undefined(xs, "uniqueItems", unique_items)
     Enum.into(xs, %{})
   end
 
-  def to_json_schema({schema, opts}) when is_atom(schema) do
+  def to_json_schema({schema, opts}, global_opts) when is_atom(schema) do
     if not simple_schema_implemented?(schema) do
       raise "#{schema} is not exported a function schema/1"
     end
 
-    {schema2, opts2} =
-      case schema.schema(opts) do
-        {schema2, opts2} -> {schema2, opts2}
-        schema2 -> {schema2, []}
-      end
+    case Keyword.fetch(global_opts, :struct_converter) do
+      {:ok, struct_converter} ->
+        struct_converter.(schema, opts)
+      :error ->
+        {schema2, opts2} =
+          case schema.schema(opts) do
+            {schema2, opts2} -> {schema2, opts2}
+            schema2 -> {schema2, []}
+          end
 
-    to_json_schema({schema2, opts2})
+        to_json_schema({schema2, opts2}, global_opts)
+    end
   end
 
-  def to_json_schema(schema) when is_atom(schema), do: to_json_schema({schema, []})
+  def to_json_schema(schema, global_opts) when is_atom(schema), do: to_json_schema({schema, []}, global_opts)
 
   defp split_opts({schema, opts}), do: {schema, opts}
   defp split_opts(schema), do: {schema, []}

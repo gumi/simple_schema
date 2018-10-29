@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.6
+
+- Add `:struct_converter` global opts in `SimpleSchema.Schema.to_json_schema/2` to convert to any JSON like `{"$ref", "#/schemas/MyStruct1"}`.
+
 ## 1.1.5
 
 - Add `:unique_items` restriction for array simple schema.
