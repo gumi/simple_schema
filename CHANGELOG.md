@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.7
+
+- Update dependencies
+
 ## 1.1.6
 
 - Add `:struct_converter` global opts in `SimpleSchema.Schema.to_json_schema/2` to convert to any JSON like `{"$ref", "#/schemas/MyStruct1"}`.
