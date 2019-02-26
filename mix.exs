@@ -32,7 +32,7 @@ defmodule SimpleSchema.Mixfile do
   defp deps do
     [
       {:ex_json_schema, "~> 0.5.7"},
-      {:ex_doc, "~> 0.19.1", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.19.3", only: :dev, runtime: false},
       {:memoize, "~> 1.2"}
     ]
   end
