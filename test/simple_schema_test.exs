@@ -148,17 +148,57 @@ defmodule SimpleSchemaTest do
 
     valid_json_output = %{
       "internal" => nil,
-      "internal2" => nil,
+      "internal2" => nil
     }
 
     expected = %MyStruct2.Nullable{
       internal: nil,
-      internal2: nil,
+      internal2: nil
     }
 
     {:error, _} = SimpleSchema.from_json(MyStruct2.Nullable, invalid_json)
     assert {:ok, expected} == SimpleSchema.from_json(MyStruct2.Nullable, valid_json)
     assert {:ok, valid_json_output} == SimpleSchema.to_json(MyStruct2.Nullable, expected)
+  end
+
+  defmodule MyStruct.OptionalNullableDefault do
+    import SimpleSchema, only: [defschema: 1]
+
+    defschema(
+      value: :integer,
+      optional: {:integer, optional: true},
+      nullable: {:integer, nullable: true},
+      default: {:integer, default: 0},
+      optional_nullable: {:integer, optional: true, nullable: true},
+      optional_default: {:integer, optional: true, default: 0},
+      nullable_default: {:integer, nullable: true, default: 0},
+      optional_nullable_default: {:integer, optional: true, nullable: true, default: 0}
+    )
+  end
+
+  test "構造体を optional, nullable, default で利用した場合の動作" do
+    valid_json = %{"value" => 1, "nullable" => 100}
+
+    expected = %MyStruct.OptionalNullableDefault{
+      # optional, default のどちらも設定されてない場合、フィールドの設定は必須になる
+      value: 1,
+      nullable: 100,
+
+      # optional にした場合はフィールドを省略可能だが、nullable の設定に関係なく nil が設定される
+      # （構造体で値を指定しなかったのと同じ動作）
+      optional: nil,
+      optional_nullable: nil,
+
+      # default が指定されている場合はフィールドを省略可能で、
+      # フィールドが存在しなかった場合にデフォルト値が設定される
+      default: 0,
+      optional_default: 0,
+      nullable_default: 0,
+      optional_nullable_default: 0
+    }
+
+    assert {:ok, expected} ==
+             SimpleSchema.from_json(MyStruct.OptionalNullableDefault, valid_json)
   end
 
   defmodule MyStruct.Nullable do
