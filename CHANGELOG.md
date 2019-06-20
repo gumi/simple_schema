@@ -4,6 +4,7 @@
 
 - 英語に疲れたので日本語にする
 - `SimpleSchema.from_json/3` や `SimpleSchema.to_json/3` に `:get_json_schema` オプションを追加
+- 依存ライブラリの更新
 
 ## 1.1.7
 
