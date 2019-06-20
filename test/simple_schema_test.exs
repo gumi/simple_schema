@@ -285,4 +285,22 @@ defmodule SimpleSchemaTest do
     assert {:ok, expected} == SimpleSchema.from_json(MyStruct4, valid_json)
     assert {:ok, expected_json} == SimpleSchema.to_json(MyStruct4, expected)
   end
+
+  defmodule MyStruct5 do
+    import SimpleSchema, only: [defschema: 1]
+
+    defschema(test: {[:integer], max_items: 5})
+  end
+
+  test "get_json_schema を自分で指定する" do
+    # 本来なら max_items を超えるので指定不可能な値
+    json = %{"test" => [1, 2, 3, 4, 5, 6]}
+    expected = %MyStruct5{test: [1, 2, 3, 4, 5, 6]}
+    # get_json_schema を指定して maxItems を消す
+    get_json_schema = fn schema, opts ->
+      js = SimpleSchema.Schema.to_json_schema(schema, opts)
+      update_in(js["properties"]["test"], &(Map.delete(&1, "maxItems")))
+    end
+    {:ok, expected} = SimpleSchema.from_json(MyStruct5, json, [get_json_schema: get_json_schema])
+  end
 end

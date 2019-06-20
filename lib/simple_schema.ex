@@ -120,14 +120,14 @@ defmodule SimpleSchema do
   """
   def from_json(schema, json, opts \\ []) do
     optimistic = Keyword.get(opts, :optimistic, false)
-    cache_key = Keyword.get(opts, :cache_key, schema)
 
     if optimistic do
       SimpleSchema.Schema.from_json(schema, json)
     else
-      get_json_schema = fn -> SimpleSchema.Schema.to_json_schema(schema, opts) end
+      cache_key = Keyword.get(opts, :cache_key, schema)
+      get_json_schema = Keyword.get(opts, :get_json_schema, fn schema, opts -> SimpleSchema.Schema.to_json_schema(schema, opts) end)
 
-      case SimpleSchema.Validator.validate(get_json_schema, json, cache_key) do
+      case SimpleSchema.Validator.validate(get_json_schema, schema, opts, json, cache_key) do
         {:error, reason} ->
           {:error, reason}
 
@@ -155,7 +155,6 @@ defmodule SimpleSchema do
   """
   def to_json(schema, value, opts \\ []) do
     optimistic = Keyword.get(opts, :optimistic, false)
-    cache_key = Keyword.get(opts, :cache_key, schema)
 
     case SimpleSchema.Schema.to_json(schema, value) do
       {:error, reason} ->
@@ -165,9 +164,10 @@ defmodule SimpleSchema do
         if optimistic do
           {:ok, json}
         else
-          get_json_schema = fn -> SimpleSchema.Schema.to_json_schema(schema, opts) end
+          cache_key = Keyword.get(opts, :cache_key, schema)
+          get_json_schema = Keyword.get(opts, :get_json_schema, fn schema, opts -> SimpleSchema.Schema.to_json_schema(schema, opts) end)
 
-          case SimpleSchema.Validator.validate(get_json_schema, json, cache_key) do
+          case SimpleSchema.Validator.validate(get_json_schema, schema, opts, json, cache_key) do
             {:error, reason} ->
               {:error, reason}
 
