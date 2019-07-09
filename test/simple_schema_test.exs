@@ -301,6 +301,6 @@ defmodule SimpleSchemaTest do
       js = SimpleSchema.Schema.to_json_schema(schema, opts)
       update_in(js["properties"]["test"], &(Map.delete(&1, "maxItems")))
     end
-    {:ok, expected} = SimpleSchema.from_json(MyStruct5, json, [get_json_schema: get_json_schema])
+    {:ok, ^expected} = SimpleSchema.from_json(MyStruct5, json, [get_json_schema: get_json_schema])
   end
 end
