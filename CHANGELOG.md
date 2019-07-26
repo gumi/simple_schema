@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.1.9
+
+- Elixir 1.9.0 に対応(Thanks @hiromoon !)
+
+ただし Elixir 1.9.0 では ex_json_schema に[問題](https://github.com/jonasschmidt/ex_json_schema/pull/43) があり、warning が出てしまうため、必要であれば以下のようにして ex_json_schema を上書きすること。
+
+```elixir
+defp deps do
+  [
+    {:simple_schema, "~> 1.1.9"},
+    # これを追加
+    {:ex_json_schema, git: "https://github.com/gumi/ex_json_schema.git", tag: "v0.6.2-hotfix", override: true}
+  ]
+end
+```
+
 ## 1.1.8
 
 - 英語に疲れたので日本語にする
