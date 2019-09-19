@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.10
+
+- ex_json_schema を0.6.2 にアップデートしました。 これによってElixir 1.9.0 で warning が出る問題が解決されました。
+
 ## 1.1.9
 
 - Elixir 1.9.0 に対応(Thanks @hiromoon !)
