@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.11
+
+- 依存ライブラリの更新
+
 ## 1.1.9
 
 - Elixir 1.9.0 に対応(Thanks @hiromoon !)
