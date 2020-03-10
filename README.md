@@ -205,6 +205,20 @@ assert value.point.y == 20
 - `{:default, any}`: フィールドのデフォルト値。渡された JSON にこのフィールドが存在しなかった場合はこの値になる。`%{...}` の子要素のみ指定可能。
 - `{:field, string}`: 対応する JSON のフィールド名。`%{...}` の子要素のみ指定可能。
 
+### メタ情報
+
+シンプルスキーマや制約以外の情報は `opts` に `:meta` キーを使って追加します。
+
+```elixir
+schema = %{
+  value: {:integer, optional: true},
+  point: %{
+    x: {:integer, meta: %{description: "x座標"}},
+    y: {:integer, meta: %{description: "y座標"}},
+  },
+}
+```
+
 ## `SimpleSchema` ビヘイビア
 
 `SimpleSchema` ビヘイビアを実装したモジュールは、シンプルスキーマになります。

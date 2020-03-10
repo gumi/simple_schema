@@ -341,4 +341,30 @@ defmodule SimpleSchema.SchemaTest do
 
     assert expected == SimpleSchema.Schema.to_json_schema(schema, struct_converter: struct_converter)
   end
+
+  test "ignore meta" do
+    test_schema(
+      %{"type" => ["boolean", "null"]},
+      {:boolean, nullable: true, meta: %{description: "description"}}
+    )
+
+    test_schema(
+      %{"type" => "array", "items" => %{"type" => "string"}},
+      {[:string], meta: %{description: "description"}}
+    )
+
+    test_schema(
+      %{"type" => "string"},
+      {:string, field: "_field", meta: %{description: "description"}}
+    )
+
+    expected = SimpleSchema.Schema.to_json_schema(%{key1: %{key2: :integer}})
+    schema = %{
+      key1: {
+        %{key2: {:integer, meta: %{format: :int64}}},
+        meta: %{description: "description"}
+      }
+    }
+    test_schema(expected, schema)
+  end
 end
