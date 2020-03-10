@@ -303,4 +303,21 @@ defmodule SimpleSchemaTest do
     end
     {:ok, ^expected} = SimpleSchema.from_json(MyStruct5, json, [get_json_schema: get_json_schema])
   end
+
+  defmodule MyStruct6 do
+    import SimpleSchema, only: [defschema: 1]
+
+    defschema(
+      password: {:string, field: "_password", meta: %{description: "password", min_length: 15}}
+    )
+  end
+
+  test "meta の情報は無視される" do
+    # meta の min_length は無視される
+    expected = %MyStruct6{password: "abc"}
+    assert {:ok, expected} == SimpleSchema.from_json(MyStruct6, %{"_password" => "abc"})
+
+    expected_json = %{"_password" => "abc"}
+    assert {:ok, expected_json} == SimpleSchema.to_json(MyStruct6, expected)
+  end
 end

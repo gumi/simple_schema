@@ -100,8 +100,13 @@ defmodule SimpleSchema.Schema do
 
   @primitive_types [:boolean, :integer, :number, :null, :string, :any]
 
-  defp raise_if_unexpected_opts([]), do: :ok
-  defp raise_if_unexpected_opts(field: _), do: :ok
+  defp raise_if_unexpected_opts(opts) do
+    {_, opts} = Keyword.pop(opts, :field)
+    {_, opts} = Keyword.pop(opts, :meta)
+    do_raise_if_unexpected_opts(opts)
+  end
+
+  defp do_raise_if_unexpected_opts([]), do: :ok
 
   defp to_types(type, nullable)
   defp to_types(type, true), do: [type, "null"]
