@@ -1,22 +1,22 @@
 defmodule SimpleSchema.Mixfile do
   use Mix.Project
 
+  @source_url "https://github.com/gumi/simple_schema"
+  @version "1.2.0"
+  @name "SimpleSchema"
+
   def project do
     [
       app: :simple_schema,
-      version: "1.2.0",
+      name: @name,
+      version: @version,
       elixir: "~> 1.9",
       elixirc_paths: elixirc_paths(Mix.env()),
       description: "Validate JSON and store to a specified data structure",
-      package: [
-        maintainers: ["melpon", "kenichirow"],
-        licenses: ["Apache 2.0"],
-        links: %{"GitHub" => "https://github.com/gumi/simple_schema"}
-      ],
-      docs: [main: "SimpleSchema"],
       start_permanent: Mix.env() == :prod,
-      deps: deps(),
-      source_url: "https://github.com/gumi/simple_schema"
+      package: package(),
+      docs: docs(),
+      deps: deps()
     ]
   end
 
@@ -34,6 +34,25 @@ defmodule SimpleSchema.Mixfile do
       {:ex_json_schema, "~> 0.7"},
       {:ex_doc, "~> 0.22", only: :dev, runtime: false},
       {:memoize, "~> 1.3"}
+    ]
+  end
+
+  defp package do
+    [
+      maintainers: ["melpon", "kenichirow"],
+      licenses: ["Apache 2.0"],
+      links: %{
+        "Changelog" => "#{@source_url}/blob/master/CHANGELOG.md",
+        "GitHub" => @source_url
+      }
+    ]
+  end
+
+  defp docs do
+    [
+      main: @name,
+      source_ref: @version,
+      source_url: @source_url
     ]
   end
 end
