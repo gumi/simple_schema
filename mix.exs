@@ -5,7 +5,7 @@ defmodule SimpleSchema.Mixfile do
     [
       app: :simple_schema,
       version: "1.1.11",
-      elixir: "~> 1.5",
+      elixir: "~> 1.9",
       elixirc_paths: elixirc_paths(Mix.env()),
       description: "Validate JSON and store to a specified data structure",
       package: [
@@ -32,7 +32,7 @@ defmodule SimpleSchema.Mixfile do
   defp deps do
     [
       {:ex_json_schema, "~> 0.7"},
-      {:ex_doc, "~> 0.21", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.22", only: :dev, runtime: false},
       {:memoize, "~> 1.3"}
     ]
   end
