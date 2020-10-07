@@ -2,8 +2,14 @@
 
 ## develop
 
+## 1.2.0
+
 - スキーマのオプションに `:meta` フィールドを追加
   - @minzaki
+- Elixir 1.11.0 に対応
+  - @melpon
+- deps 更新
+  - @melpon
 
 ## 1.1.11
 
