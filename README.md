@@ -1,5 +1,7 @@
 # SimpleSchema
 
+<!-- MDOC !-->
+
 SimpleSchema は JSON の検証と各データ構造への設定を行うライブラリです。
 
 - [hex.pm](https://hex.pm/packages/simple_schema)
