@@ -4,7 +4,7 @@ defmodule SimpleSchema.Mixfile do
   def project do
     [
       app: :simple_schema,
-      version: "1.2.0",
+      version: "1.2.1",
       elixir: "~> 1.9",
       elixirc_paths: elixirc_paths(Mix.env()),
       description: "Validate JSON and store to a specified data structure",
